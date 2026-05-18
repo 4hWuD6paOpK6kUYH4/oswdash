@@ -1,0 +1,2702 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GOWA — Offshore Wind Dashboard 2025</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,600;1,8..60,300&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<!-- Satoshi via Fontshare CDN -->
+<link href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700,900&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root {
+  /* GOWA exact brand colours — dark premium theme */
+  --navy:       #000060;   /* GOWA primary navy  */
+  --navy-mid:   #00004A;   /* sidebar / card bg  */
+  --navy-light: #000880;   /* hover / raised      */
+  --lime:       #C3FF6E;   /* GOWA lime — KEY numbers & accents */
+  --lime-dim:   #9FD94E;
+  --teal:       #2CCEC9;   /* GOWA teal accent   */
+  --teal-bright:#2CCEC9;
+  --blue2:      #004772;   /* GOWA secondary blue */
+  --amber:      #F5B800;
+  --slate:      #7A8DB8;
+  --slate-light:#A8BAD8;
+  --white:      #FFFFFF;
+  --green:      #C3FF6E;   /* alias lime          */
+  --rose:       #F43F5E;
+  --purple:     #004772;
+  --sidebar-w:  240px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Satoshi', 'Arial', sans-serif;
+  background: var(--navy);
+  color: var(--white);
+  min-height: 100vh;
+  display: flex;
+  overflow-x: hidden;
+}
+
+/* ── SIDEBAR ─────────────────────────────────────────── */
+.sidebar {
+  width: var(--sidebar-w);
+  min-height: 100vh;
+  background: var(--navy-mid);
+  border-right: 1px solid rgba(255,255,255,0.06);
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  top: 0; left: 0;
+  z-index: 100;
+  padding: 0;
+}
+
+.sidebar-logo {
+  padding: 28px 20px 20px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+
+.logo-badge {
+  display: inline-block;
+  background: var(--lime);
+  color: #000060 !important;
+  color: #fff;
+  font-family: 'Satoshi', sans-serif;
+  font-weight: 800;
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  padding: 4px 8px;
+  border-radius: 3px;
+  margin-bottom: 10px;
+}
+
+.logo-title {
+  font-family: 'Satoshi', sans-serif;
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--white);
+  line-height: 1.3;
+}
+
+.logo-subtitle {
+  font-size: 11px;
+  color: var(--slate);
+  margin-top: 4px;
+  letter-spacing: 0.03em;
+}
+
+.sidebar-nav { padding: 16px 0; flex: 1; }
+
+.nav-section-label {
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--slate);
+  padding: 12px 20px 6px;
+  font-family: 'DM Mono', monospace;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 20px;
+  cursor: pointer;
+  transition: all 0.15s;
+  border-left: 3px solid transparent;
+  font-size: 13px;
+  color: var(--slate-light);
+  font-weight: 400;
+}
+
+.nav-item:hover { background: rgba(255,255,255,0.04); color: var(--white); }
+
+.nav-item.active {
+  background: rgba(195,255,110,0.10);
+  border-left-color: var(--lime);
+  color: var(--white);
+  font-weight: 600;
+}
+
+.nav-icon {
+  width: 18px; height: 18px;
+  opacity: 0.7;
+  flex-shrink: 0;
+}
+.nav-item.active .nav-icon { opacity: 1; }
+
+.sidebar-footer {
+  padding: 16px 20px;
+  border-top: 1px solid rgba(255,255,255,0.06);
+  font-size: 10px;
+  color: var(--slate);
+  line-height: 1.5;
+}
+
+.data-freshness {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  color: var(--green);
+  margin-bottom: 6px;
+}
+
+.dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); }
+
+/* ── MAIN ────────────────────────────────────────────── */
+.main {
+  margin-left: var(--sidebar-w);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* ── TOP BAR ─────────────────────────────────────────── */
+.topbar {
+  height: 64px;
+  background: var(--navy-mid);
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 32px;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+
+.topbar-left { display: flex; align-items: center; gap: 20px; }
+
+.page-title {
+  font-family: 'Satoshi', sans-serif;
+  font-weight: 700;
+  font-size: 17px;
+  color: var(--white);
+}
+
+.topbar-tag {
+  background: rgba(195,255,110,0.10);
+  border: 1px solid rgba(195,255,110,0.25);
+  color: var(--lime);
+  font-size: 10px;
+  font-family: 'DM Mono', monospace;
+  padding: 3px 9px;
+  border-radius: 20px;
+  letter-spacing: 0.05em;
+}
+
+.topbar-right { display: flex; align-items: center; gap: 16px; }
+
+.filter-pill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 20px;
+  padding: 5px 14px;
+  font-size: 12px;
+  color: var(--slate-light);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.filter-pill:hover { background: rgba(255,255,255,0.09); color: var(--white); }
+.filter-pill.active {
+  background: rgba(6,182,212,0.15);
+  border-color: var(--teal-bright);
+  color: var(--teal-bright);
+}
+
+/* ── CONTENT ─────────────────────────────────────────── */
+.content {
+  padding: 28px 32px;
+  flex: 1;
+}
+
+.section { display: none; }
+.section.active { display: block; }
+
+/* ── HERO STATS ──────────────────────────────────────── */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 14px;
+  margin-bottom: 28px;
+}
+
+.kpi-card {
+  background: var(--navy-mid);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 10px;
+  padding: 18px 20px;
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.2s, border-color 0.2s;
+}
+.kpi-card:hover { transform: translateY(-2px); border-color: rgba(6,182,212,0.3); }
+
+.kpi-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: var(--accent-color, var(--teal));
+}
+
+.kpi-label {
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--slate);
+  margin-bottom: 10px;
+  font-family: 'DM Mono', monospace;
+}
+
+.kpi-value {
+  font-family: 'Satoshi', sans-serif;
+  font-weight: 800;
+  font-size: 28px;
+  line-height: 1;
+  color: var(--white);
+  margin-bottom: 6px;
+}
+
+.kpi-unit {
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--slate);
+  margin-left: 3px;
+}
+
+.kpi-delta {
+  font-size: 11px;
+  font-family: 'DM Mono', monospace;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.kpi-delta.up   { color: var(--lime); }
+.kpi-delta.down { color: var(--rose); }
+.kpi-delta.warn { color: var(--amber); }
+
+/* ── CHART GRID ──────────────────────────────────────── */
+.chart-grid-2 {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 18px;
+  margin-bottom: 20px;
+}
+
+.chart-grid-3 {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 18px;
+  margin-bottom: 20px;
+}
+
+.chart-grid-1 { margin-bottom: 20px; }
+
+.card {
+  background: var(--navy-mid);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 10px;
+  padding: 22px 24px;
+  position: relative;
+}
+
+.card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 18px;
+}
+
+.card-title {
+  font-family: 'Satoshi', sans-serif;
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--white);
+  margin-bottom: 4px;
+}
+
+.card-subtitle {
+  font-size: 11px;
+  color: var(--slate);
+}
+
+.card-badge {
+  font-size: 9px;
+  font-family: 'DM Mono', monospace;
+  padding: 3px 7px;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+
+.badge-irena  { background: rgba(6,182,212,0.15); color: var(--teal-bright); border: 1px solid rgba(6,182,212,0.25); }
+.badge-third  { background: rgba(245,158,11,0.12); color: var(--amber); border: 1px solid rgba(245,158,11,0.25); }
+.badge-gap    { background: rgba(244,63,94,0.12); color: var(--rose); border: 1px solid rgba(244,63,94,0.25); }
+
+.chart-wrap { position: relative; }
+.chart-wrap canvas { max-width: 100%; }
+
+/* ── WORLD MAP PLACEHOLDER ───────────────────────────── */
+.map-container {
+  background: linear-gradient(135deg, rgba(10,22,40,0.9), rgba(17,32,64,0.9));
+  border-radius: 8px;
+  height: 300px;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.map-placeholder-text {
+  text-align: center;
+  z-index: 2;
+}
+
+.map-placeholder-text h3 {
+  font-family: 'Satoshi', sans-serif;
+  font-size: 15px;
+  color: var(--teal-bright);
+  margin-bottom: 8px;
+}
+
+.map-placeholder-text p {
+  font-size: 12px;
+  color: var(--slate);
+  max-width: 280px;
+}
+
+/* Fake map dots */
+.map-dots { position: absolute; inset: 0; }
+.map-dot {
+  position: absolute;
+  border-radius: 50%;
+  background: var(--teal-bright);
+  opacity: 0.7;
+  animation: pulse-dot 2s infinite;
+}
+@keyframes pulse-dot {
+  0%, 100% { opacity: 0.5; transform: scale(1); }
+  50%       { opacity: 0.9; transform: scale(1.3); }
+}
+
+/* ── REGION TABLE ────────────────────────────────────── */
+.region-table { width: 100%; border-collapse: collapse; }
+.region-table th {
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--slate);
+  font-family: 'DM Mono', monospace;
+  padding: 0 0 12px;
+  text-align: left;
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+}
+.region-table th:not(:first-child) { text-align: right; }
+
+.region-table td {
+  padding: 11px 0;
+  font-size: 12px;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  vertical-align: middle;
+}
+.region-table td:not(:first-child) { text-align: right; font-family: 'DM Mono', monospace; }
+
+.region-flag {
+  width: 8px; height: 8px; border-radius: 50%;
+  display: inline-block; margin-right: 8px;
+}
+
+.bar-inline {
+  display: inline-block;
+  height: 5px;
+  border-radius: 3px;
+  background: var(--teal);
+  vertical-align: middle;
+  margin-left: 8px;
+  opacity: 0.7;
+}
+
+.share-text { color: var(--slate); font-size: 11px; }
+
+/* ── LCOE LEGEND ─────────────────────────────────────── */
+.legend-row {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  margin-top: 14px;
+  flex-wrap: wrap;
+}
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--slate-light);
+}
+.legend-dot {
+  width: 10px; height: 10px; border-radius: 2px;
+}
+
+/* ── SCENARIO SECTION ────────────────────────────────── */
+.scenario-bar-group { margin-bottom: 14px; }
+.scenario-label {
+  font-size: 11px;
+  color: var(--slate-light);
+  margin-bottom: 5px;
+  display: flex;
+  justify-content: space-between;
+}
+.scenario-label span { font-family: 'DM Mono', monospace; color: var(--white); }
+.scenario-track {
+  background: rgba(255,255,255,0.07);
+  border-radius: 3px;
+  height: 8px;
+  overflow: hidden;
+}
+.scenario-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 1s ease;
+}
+
+/* ── FINANCE SECTION ─────────────────────────────────── */
+.flow-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+.flow-label { font-size: 12px; color: var(--slate-light); }
+.flow-amount { font-family: 'DM Mono', monospace; font-size: 13px; color: var(--white); }
+.flow-bar-wrap { flex: 1; margin: 0 16px; }
+.flow-bar {
+  height: 4px;
+  border-radius: 2px;
+  background: var(--teal);
+  opacity: 0.6;
+}
+
+/* ── SECTION HEADERS ─────────────────────────────────── */
+.section-heading {
+  margin-bottom: 22px;
+}
+.section-heading h2 {
+  font-family: 'Satoshi', sans-serif;
+  font-weight: 700;
+  font-size: 20px;
+  color: var(--white);
+  margin-bottom: 5px;
+}
+.section-heading p {
+  font-size: 13px;
+  color: var(--slate);
+  max-width: 620px;
+  line-height: 1.6;
+  font-family: 'Source Serif 4', Georgia, serif;
+}
+
+/* ── SOURCE LABEL ────────────────────────────────────── */
+.source-label {
+  font-size: 10px;
+  color: var(--slate);
+  margin-top: 12px;
+  font-family: 'Source Serif 4', Georgia, serif;
+}
+.source-label span { color: var(--lime); }
+.source-label a {
+  color: var(--lime);
+  text-decoration: none;
+  border-bottom: 1px dotted rgba(6,182,212,0.4);
+  transition: color 0.15s, border-color 0.15s;
+}
+.source-label a:hover { color: var(--lime); border-bottom-color: var(--lime); }
+
+/* ── SOURCES PANEL ───────────────────────────────────── */
+.sources-panel {
+  background: rgba(10,22,40,0.6);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 10px;
+  padding: 20px 24px;
+  margin-top: 24px;
+}
+.sources-panel-title {
+  font-family: 'Satoshi', sans-serif;
+  font-weight: 600;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--slate);
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.sources-panel-title::before {
+  content: '';
+  display: inline-block;
+  width: 16px; height: 2px;
+  background: var(--lime);
+  flex-shrink: 0;
+}
+.sources-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+.source-item {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 10px 12px;
+  background: var(--navy-mid);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 7px;
+  transition: border-color 0.15s, background 0.15s;
+  text-decoration: none;
+  cursor: pointer;
+}
+.source-item:hover {
+  border-color: rgba(6,182,212,0.35);
+  background: rgba(6,182,212,0.05);
+}
+.source-item-org {
+  font-size: 9px;
+  font-family: 'DM Mono', monospace;
+  color: var(--lime);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.source-item-name {
+  font-size: 11px;
+  color: var(--slate-light);
+  line-height: 1.4;
+}
+.source-item-type { font-size: 9px; color: var(--slate); margin-top: 2px; }
+.source-badge-free {
+  display: inline-block;
+  background: rgba(16,185,129,0.15);
+  color: var(--green);
+  border: 1px solid rgba(16,185,129,0.25);
+  border-radius: 3px;
+  font-size: 8px;
+  font-family: 'DM Mono', monospace;
+  padding: 1px 5px;
+  margin-top: 4px;
+  width: fit-content;
+}
+.source-badge-paid {
+  display: inline-block;
+  background: rgba(245,158,11,0.12);
+  color: var(--amber);
+  border: 1px solid rgba(245,158,11,0.25);
+  border-radius: 3px;
+  font-size: 8px;
+  font-family: 'DM Mono', monospace;
+  padding: 1px 5px;
+  margin-top: 4px;
+  width: fit-content;
+}
+
+/* ── FLOATING WIND TECH CARDS ────────────────────────── */
+.tech-cards {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  margin-bottom: 20px;
+}
+.tech-card {
+  background: var(--navy-light);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 8px;
+  padding: 16px;
+  transition: border-color 0.2s;
+}
+.tech-card:hover { border-color: rgba(6,182,212,0.4); }
+.tech-card-icon {
+  font-size: 24px;
+  margin-bottom: 10px;
+}
+.tech-card-name {
+  font-family: 'Satoshi', sans-serif;
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--white);
+  margin-bottom: 5px;
+}
+.tech-card-meta {
+  font-size: 11px;
+  color: var(--slate);
+  line-height: 1.5;
+  font-family: 'Source Serif 4', Georgia, serif;
+}
+.tech-card-trl {
+  margin-top: 10px;
+  font-size: 10px;
+  font-family: 'DM Mono', monospace;
+  color: var(--amber);
+}
+
+/* ── JOBS SECTION ────────────────────────────────────── */
+.jobs-note {
+  background: rgba(244,63,94,0.08);
+  border: 1px solid rgba(244,63,94,0.2);
+  border-radius: 8px;
+  padding: 14px 16px;
+  margin-top: 14px;
+  font-size: 12px;
+  color: #FDA4AF;
+  line-height: 1.6;
+}
+.jobs-note strong { color: var(--rose); }
+
+/* ── TOOLTIP OVERRIDE ────────────────────────────────── */
+.tooltip-custom {
+  position: absolute;
+  background: var(--navy-mid);
+  border: 1px solid rgba(6,182,212,0.3);
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-size: 11px;
+  pointer-events: none;
+  z-index: 200;
+  display: none;
+}
+
+/* ── DATA NOTE BANNER ────────────────────────────────── */
+.data-note {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(245,158,11,0.08);
+  border: 1px solid rgba(245,158,11,0.2);
+  border-radius: 8px;
+  padding: 12px 18px;
+  margin-bottom: 22px;
+  font-size: 12px;
+  color: #FDE68A;
+  line-height: 1.5;
+}
+.data-note-icon { font-size: 16px; flex-shrink: 0; }
+
+/* ── INTRO OVERVIEW ──────────────────────────────────── */
+.intro-grid {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr;
+  gap: 18px;
+  margin-bottom: 20px;
+}
+
+.hero-card {
+  background: linear-gradient(135deg, var(--navy-light), var(--navy-mid));
+  border: 1px solid rgba(6,182,212,0.2);
+  border-radius: 10px;
+  padding: 28px 30px;
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-card::after {
+  content: '';
+  position: absolute;
+  top: -40px; right: -40px;
+  width: 160px; height: 160px;
+  background: radial-gradient(circle, rgba(6,182,212,0.12), transparent 70%);
+}
+
+.hero-card h3 {
+  font-family: 'Satoshi', sans-serif;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--white);
+  margin-bottom: 12px;
+  line-height: 1.3;
+}
+
+.hero-card p {
+  font-size: 13px;
+  color: var(--slate-light);
+  line-height: 1.7;
+  max-width: 480px;
+}
+
+.hero-stat-row {
+  display: flex;
+  gap: 24px;
+  margin-top: 22px;
+}
+
+.hero-stat {
+  border-left: 2px solid var(--teal);
+  padding-left: 12px;
+}
+
+.hero-stat-val {
+  font-family: 'Satoshi', sans-serif;
+  font-weight: 800;
+  font-size: 22px;
+  color: var(--teal-bright);
+}
+
+.hero-stat-lbl {
+  font-size: 11px;
+  color: var(--slate);
+  margin-top: 2px;
+}
+
+.target-card {
+  background: var(--navy-mid);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 10px;
+  padding: 22px 24px;
+}
+
+.target-title {
+  font-family: 'Satoshi', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--slate-light);
+  letter-spacing: 0.04em;
+  margin-bottom: 18px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.target-item {
+  margin-bottom: 16px;
+}
+
+.target-year {
+  font-size: 10px;
+  font-family: 'Source Serif 4', Georgia, serif;
+  font-style: italic;
+  color: var(--amber);
+  margin-bottom: 4px;
+}
+
+.target-value {
+  font-family: 'Satoshi', sans-serif;
+  font-weight: 700;
+  font-size: 20px;
+  color: var(--white);
+  margin-bottom: 4px;
+}
+
+.target-track {
+  background: rgba(255,255,255,0.08);
+  border-radius: 4px;
+  height: 6px;
+  overflow: hidden;
+}
+
+.target-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 1.2s ease;
+}
+
+.target-note { font-size: 10px; color: var(--slate); margin-top: 3px; font-family: 'Source Serif 4', Georgia, serif; }
+
+/* ── ANIMATIONS ──────────────────────────────────────── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.section.active .kpi-card,
+.section.active .card,
+.section.active .tech-card,
+.section.active .hero-card,
+.section.active .target-card {
+  animation: fadeUp 0.4s ease both;
+}
+
+.section.active .kpi-card:nth-child(1) { animation-delay: 0.05s; }
+.section.active .kpi-card:nth-child(2) { animation-delay: 0.10s; }
+.section.active .kpi-card:nth-child(3) { animation-delay: 0.15s; }
+.section.active .kpi-card:nth-child(4) { animation-delay: 0.20s; }
+.section.active .kpi-card:nth-child(5) { animation-delay: 0.25s; }
+
+
+/* ── CLIMATE / NDC STYLES ────────────────────────────── */
+.climate-accent { color: #34D399; }
+
+.ndc-table { width:100%; border-collapse:collapse; margin-top:4px; }
+.ndc-table th {
+  font-size:9px; letter-spacing:.1em; text-transform:uppercase;
+  color:var(--slate); font-family:'DM Mono',monospace;
+  padding:0 0 10px; text-align:left;
+  border-bottom:1px solid rgba(255,255,255,0.07);
+}
+.ndc-table th:not(:first-child) { text-align:right; }
+.ndc-table td {
+  padding:9px 0; font-size:11px;
+  border-bottom:1px solid rgba(255,255,255,0.04);
+  vertical-align:middle;
+}
+.ndc-table td:not(:first-child) { text-align:right; font-family:'DM Mono',monospace; }
+.ndc-type {
+  display:inline-block; font-size:8px; font-family:'DM Mono',monospace;
+  padding:2px 5px; border-radius:3px; margin-left:5px; vertical-align:middle;
+}
+.ndc-unconditional { background:rgba(195,255,110,0.12); color:var(--lime); border:1px solid rgba(195,255,110,0.3); }
+.ndc-conditional   { background:rgba(44,206,201,0.10);  color:var(--teal); border:1px solid rgba(44,206,201,0.25); }
+.ndc-qualitative   { background:rgba(148,163,184,0.12); color:var(--slate); border:1px solid rgba(148,163,184,0.2); }
+
+.ambition-track {
+  background:rgba(255,255,255,0.06);
+  border-radius:5px; height:10px; overflow:hidden; margin-top:5px;
+}
+.ambition-fill {
+  height:100%; border-radius:5px; transition:width 1.2s ease;
+}
+.ambition-label {
+  display:flex; justify-content:space-between; align-items:baseline;
+  font-size:11px; color:var(--slate-light); margin-top:12px; margin-bottom:3px;
+}
+.ambition-label strong { font-family:'Satoshi',sans-serif; font-size:15px; color:var(--white); font-weight:700; }
+.ambition-year { font-size:9px; font-family:'DM Mono',monospace; color:var(--teal-bright); margin-bottom:2px; }
+
+.climate-note {
+  display:flex; align-items:flex-start; gap:12px;
+  background:rgba(195,255,110,0.06);
+  border:1px solid rgba(195,255,110,0.2);
+  border-radius:8px; padding:13px 16px; margin-top:14px;
+  font-size:12px; color:var(--slate-light); line-height:1.6;
+}
+.climate-note-icon { font-size:15px; flex-shrink:0; margin-top:1px; }
+
+.overview-climate-strip {
+  background: var(--navy-mid);
+  border:1px solid rgba(195,255,110,0.15);
+  border-radius:9px; padding:16px 20px;
+  display:grid; grid-template-columns:1fr 1fr 1fr 1fr;
+  gap:16px; margin-bottom:20px;
+}
+.ocs-item { }
+.ocs-label {
+  font-size:9px; letter-spacing:.08em; text-transform:uppercase;
+  font-family:'DM Mono',monospace; color:var(--slate-light); margin-bottom:6px;
+}
+.ocs-value {
+  font-family:'Satoshi',sans-serif; font-weight:800; font-size:22px;
+  color:var(--lime); line-height:1; margin-bottom:4px;
+}
+.ocs-note { font-size:10px; color:var(--slate); line-height:1.4; }
+
+/* ── SCROLLBAR ───────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--navy); }
+::-webkit-scrollbar-thumb { background: var(--navy-light); border-radius: 3px; }
+
+</style>
+</head>
+<body>
+
+<!-- ══ SIDEBAR ════════════════════════════════════════════ -->
+<aside class="sidebar">
+  <div class="sidebar-logo" style="padding:22px 20px 18px;">
+    <img src="data:image/png;base64,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" alt="GOWA" style="width:100%;max-width:164px;display:block;margin-bottom:12px;">
+    <div style="font-size:9px;color:rgba(255,255,255,0.45);font-family:'DM Mono',monospace;letter-spacing:0.05em;line-height:1.6;">Offshore Wind Dashboard</div>
+  </div>
+
+  <nav class="sidebar-nav">
+    <div class="nav-section-label">Overview</div>
+    <div class="nav-item active" onclick="showSection('overview', this)">
+      <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+      Overview
+    </div>
+
+    <div class="nav-section-label">Modules</div>
+    <div class="nav-item" onclick="showSection('resource', this)">
+      <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064"/></svg>
+      Resource &amp; Potential
+    </div>
+    <div class="nav-item" onclick="showSection('technology', this)">
+      <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+      Technology Status
+    </div>
+    <div class="nav-item" onclick="showSection('costs', this)">
+      <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+      Costs &amp; Economics
+    </div>
+    <div class="nav-item" onclick="showSection('market', this)">
+      <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/></svg>
+      Market, Policy &amp; Finance
+    </div>
+    <div class="nav-item" onclick="showSection('jobs', this)">
+      <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+      Socio-economic
+    </div>
+  </nav>
+
+  <div class="sidebar-footer">
+    <div class="data-freshness">
+      <div class="dot"></div>
+      Last updated: May 2026
+    </div>
+    <div>GOWA Dashboard</div>
+  </div>
+</aside>
+
+<!-- ══ MAIN ═══════════════════════════════════════════════ -->
+<main class="main">
+
+  <!-- TOP BAR -->
+  <div class="topbar">
+    <div class="topbar-left">
+      <div class="page-title" id="page-title">Overview</div>
+      <div class="topbar-tag">GOWA · IRENA · GWEC · NOT FOR PUBLICATION</div>
+    </div>
+    <div class="topbar-right"></div>
+  </div>
+
+  <div class="content">
+
+  <!-- ══ OVERVIEW ══════════════════════════════════════ -->
+  <div id="section-overview" class="section active">
+
+    <!-- KPIs — 6 cards -->
+    <div class="kpi-grid" style="grid-template-columns:repeat(6,1fr)">
+      <div class="kpi-card" style="--accent-color: var(--teal-bright)">
+        <div class="kpi-label">Installed Capacity</div>
+        <div class="kpi-value">82.9<span class="kpi-unit">GW</span></div>
+        <div class="kpi-delta up">↑ +11.3 GW in 2024</div>
+      </div>
+      <div class="kpi-card" style="--accent-color: var(--green)">
+        <div class="kpi-label">2024 Generation</div>
+        <div class="kpi-value">4,578<span class="kpi-unit">TWh</span></div>
+        <div class="kpi-delta up">↑ +10% vs 2023</div>
+      </div>
+      <div class="kpi-card" style="--accent-color: var(--amber)">
+        <div class="kpi-label">Global Avg LCOE</div>
+        <div class="kpi-value">0.079<span class="kpi-unit">$/kWh</span></div>
+        <div class="kpi-delta up">↓ 62% since 2010</div>
+      </div>
+      <div class="kpi-card" style="--accent-color: var(--purple)">
+        <div class="kpi-label">Global Technical Potential</div>
+        <div class="kpi-value">71,000<span class="kpi-unit">GW</span></div>
+        <div class="kpi-delta">Fixed + floating · 115 countries</div>
+      </div>
+      <div class="kpi-card" style="--accent-color: var(--rose)">
+        <div class="kpi-label">2030 Target (GOWA)</div>
+        <div class="kpi-value">500<span class="kpi-unit">GW</span></div>
+        <div class="kpi-delta warn">⚠ 16.6% achieved</div>
+      </div>
+      <div class="kpi-card" style="--accent-color:#34D399">
+        <div class="kpi-label">Countries with OSW Targets</div>
+        <div class="kpi-value">27</div>
+        <div class="kpi-delta up">263 GW combined by 2030</div>
+      </div>
+    </div>
+
+    <!-- CLIMATE STRIP -->
+    <div class="overview-climate-strip">
+      <div class="ocs-item">
+        <div class="ocs-label">NDCs with OSW target</div>
+        <div class="ocs-value">8</div>
+        <div class="ocs-note">Countries with explicit offshore wind in their Paris Agreement NDC</div>
+      </div>
+      <div class="ocs-item">
+        <div class="ocs-label">OSW in 1.5°C pathway</div>
+        <div class="ocs-value">413 GW</div>
+        <div class="ocs-note">Minimum required by 2030 (IRENA / GWEC)</div>
+      </div>
+      <div class="ocs-item">
+        <div class="ocs-label">Current trajectory</div>
+        <div class="ocs-value">238 GW</div>
+        <div class="ocs-note">GWEC 2030 best-case forecast — 42% short of 1.5°C minimum</div>
+      </div>
+      <div class="ocs-item">
+        <div class="ocs-label">Ambition gap</div>
+        <div class="ocs-value">−175 GW</div>
+        <div class="ocs-note">Shortfall between GWEC 2030 forecast and IRENA 1.5°C scenario</div>
+      </div>
+    </div>
+
+    <!-- MAP + TARGETS ROW (side by side) -->
+    <div style="display:grid;grid-template-columns:1.55fr 1fr;gap:16px;margin-bottom:16px;">
+
+      <!-- Map card -->
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">National OSW Targets — 27 Countries</div>
+            <div class="card-subtitle">Bubble size = target GW · Hover for details · Ring = in NDC</div>
+          </div>
+          <span class="card-badge badge-third">GWEC 2025</span>
+        </div>
+        <div style="position:relative;background:var(--navy-mid);border-radius:7px;overflow:hidden;margin-bottom:10px;">
+          <svg id="osw-map-overview" viewBox="0 0 900 380" style="width:100%;display:block;" xmlns="http://www.w3.org/2000/svg">
+            <rect width="900" height="380" fill="#00004A"/>
+            <g stroke="rgba(255,255,255,0.04)" stroke-width="0.5">
+              <line x1="0" y1="95" x2="900" y2="95"/>
+              <line x1="0" y1="190" x2="900" y2="190"/>
+              <line x1="0" y1="285" x2="900" y2="285"/>
+              <line x1="225" y1="0" x2="225" y2="380"/>
+              <line x1="450" y1="0" x2="450" y2="380"/>
+              <line x1="675" y1="0" x2="675" y2="380"/>
+            </g>
+
+            <!-- Continent fills -->
+            <path d="M60,57 L200,48 L210,76 L220,124 L200,171 L170,190 L155,218 L130,228 L110,209 L90,180 L70,152 L50,114 Z" fill="rgba(255,255,255,0.07)" stroke="rgba(255,255,255,0.12)" stroke-width="0.5"/>
+            <path d="M150,238 L200,228 L220,256 L215,304 L200,352 L175,380 L150,370 L130,342 L125,294 L135,256 Z" fill="rgba(255,255,255,0.07)" stroke="rgba(255,255,255,0.12)" stroke-width="0.5"/>
+            <path d="M390,57 L440,52 L460,71 L450,95 L420,104 L400,100 L385,86 Z" fill="rgba(255,255,255,0.07)" stroke="rgba(255,255,255,0.12)" stroke-width="0.5"/>
+            <path d="M405,124 L450,114 L470,133 L475,180 L460,228 L440,266 L420,276 L400,256 L390,209 L390,162 L395,133 Z" fill="rgba(255,255,255,0.07)" stroke="rgba(255,255,255,0.12)" stroke-width="0.5"/>
+            <path d="M470,95 L520,90 L530,114 L510,128 L480,124 Z" fill="rgba(255,255,255,0.07)" stroke="rgba(255,255,255,0.12)" stroke-width="0.5"/>
+            <path d="M490,38 L700,28 L730,57 L720,86 L680,95 L620,90 L570,95 L530,86 L500,66 Z" fill="rgba(255,255,255,0.07)" stroke="rgba(255,255,255,0.12)" stroke-width="0.5"/>
+            <path d="M560,104 L640,95 L670,124 L660,152 L630,162 L590,152 L560,133 Z" fill="rgba(255,255,255,0.07)" stroke="rgba(255,255,255,0.12)" stroke-width="0.5"/>
+            <path d="M680,256 L760,242 L790,266 L785,314 L750,332 L700,323 L675,294 Z" fill="rgba(255,255,255,0.07)" stroke="rgba(255,255,255,0.12)" stroke-width="0.5"/>
+            <line x1="0" y1="210" x2="900" y2="210" stroke="rgba(195,255,110,0.10)" stroke-width="1" stroke-dasharray="4,5"/>
+            <text x="8" y="207" fill="rgba(195,255,110,0.2)" font-size="7" font-family="monospace">EQ</text>
+            <g id="map-bubbles-overview"></g>
+            <g id="map-tooltip-overview" display="none">
+              <rect id="tt-bg-ov" x="0" y="0" width="165" height="75" rx="5" fill="#00004A" stroke="rgba(195,255,110,0.4)" stroke-width="1"/>
+              <text id="tt-country-ov" x="10" y="18" fill="white" font-size="11" font-family="Satoshi,Arial" font-weight="bold"/>
+              <text id="tt-target-ov"  x="10" y="34" fill="#C3FF6E" font-size="10" font-family="Satoshi,Arial"/>
+              <text id="tt-year-ov"    x="10" y="50" fill="#7A8DB8" font-size="9"  font-family="Satoshi,Arial"/>
+              <text id="tt-status-ov"  x="10" y="64" fill="#7A8DB8" font-size="9"  font-family="Satoshi,Arial"/>
+            </g>
+          </svg>
+        </div>
+        <div style="display:flex;gap:14px;flex-wrap:wrap;align-items:center;">
+          <div style="display:flex;align-items:center;gap:5px;font-size:9px;color:var(--slate-light)"><div style="width:8px;height:8px;border-radius:50%;background:#2CCEC9"></div>Europe</div>
+          <div style="display:flex;align-items:center;gap:5px;font-size:9px;color:var(--slate-light)"><div style="width:8px;height:8px;border-radius:50%;background:#F59E0B"></div>Asia-Pacific</div>
+          <div style="display:flex;align-items:center;gap:5px;font-size:9px;color:var(--slate-light)"><div style="width:8px;height:8px;border-radius:50%;background:#004772"></div>Americas</div>
+          <div style="display:flex;align-items:center;gap:5px;font-size:9px;color:var(--slate-light)"><div style="width:8px;height:8px;border-radius:50%;background:#F43F5E"></div>Africa &amp; MENA</div>
+          <div style="display:flex;align-items:center;gap:5px;font-size:9px;color:var(--slate-light)"><div style="width:9px;height:9px;border-radius:50%;background:none;border:1.5px solid var(--lime)"></div>In NDC</div>
+          <div style="margin-left:auto;font-size:9px;color:var(--slate)">Source: <a href="https://gwec.net/global-wind-report/" target="_blank" style="color:var(--lime);text-decoration:none;border-bottom:1px dotted rgba(195,255,110,0.4)">GWEC Global Offshore Wind Report 2025</a></div>
+        </div>
+      </div>
+
+      <!-- Targets card -->
+      <div class="target-card">
+        <div class="target-title">🎯 Capacity targets vs current progress</div>
+        <div class="target-item">
+          <div class="target-year">2024 INSTALLED</div>
+          <div class="target-value">82.9 GW</div>
+          <div class="target-track"><div class="target-fill" style="width:16.6%; background:var(--lime)"></div></div>
+          <div class="target-note">16.6% of 500 GW (2030 GOWA target)</div>
+        </div>
+        <div class="target-item">
+          <div class="target-year">GWEC 2030 FORECAST</div>
+          <div class="target-value">238 GW</div>
+          <div class="target-track"><div class="target-fill" style="width:47.6%; background:var(--teal)"></div></div>
+          <div class="target-note">Best-case — 42% short of 1.5°C minimum</div>
+        </div>
+        <div class="target-item">
+          <div class="target-year">IRENA 1.5°C SCENARIO · 2030</div>
+          <div class="target-value">413 GW needed</div>
+          <div class="target-track"><div class="target-fill" style="width:82.6%; background:var(--amber)"></div></div>
+          <div class="target-note">Climate-required minimum</div>
+        </div>
+        <div class="target-item">
+          <div class="target-year">GOWA TARGET · 2030</div>
+          <div class="target-value">500 GW</div>
+          <div class="target-track"><div class="target-fill" style="width:100%; background:var(--rose)"></div></div>
+          <div class="target-note">Alliance goal — 16.6% achieved</div>
+        </div>
+        <div class="target-item">
+          <div class="target-year">GOWA TARGET · 2050</div>
+          <div class="target-value">2,000 GW</div>
+          <div class="target-track"><div class="target-fill" style="width:4.1%; background:var(--slate)"></div></div>
+          <div class="target-note">Long-term — 4.1% achieved</div>
+        </div>
+        <div class="source-label" style="margin-top:14px">Source: <a href="https://gwec.net/global-wind-report/" target="_blank">GWEC 2025</a> · <a href="https://www.irena.org/Publications/2024/Jun/World-Energy-Transitions-Outlook-2024" target="_blank">IRENA WETO 2024</a></div>
+      </div>
+    </div>
+
+    <!-- CHARTS ROW -->
+    <div class="chart-grid-2">
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Global Installed Capacity Growth</div>
+            <div class="card-subtitle">Offshore wind cumulative GW, 2010–2024</div>
+          </div>
+          <span class="card-badge badge-irena">IRENASTAT</span>
+        </div>
+        <div class="chart-wrap"><canvas id="capacityChart" height="180"></canvas></div>
+        <div class="source-label">Source: <a href="https://www.irena.org/Data/Downloads/IRENASTAT" target="_blank">IRENA Renewable Power Capacity Statistics 2025</a></div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Capacity by Region</div>
+            <div class="card-subtitle">Share of global installed OSW, 2024</div>
+          </div>
+          <span class="card-badge badge-irena">IRENASTAT</span>
+        </div>
+        <div class="chart-wrap"><canvas id="regionPieChart" height="160"></canvas></div>
+        <div class="source-label">Source: <a href="https://www.irena.org/Data/Downloads/IRENASTAT" target="_blank">IRENA Capacity Statistics 2025</a></div>
+      </div>
+    </div>
+  </div><!-- /overview -->
+
+  <!-- ── SOURCES PANEL: OVERVIEW ───────────────────────────── -->
+  <div id="sources-overview" class="sources-panel section active">
+    <div class="sources-panel-title">Data Sources — Overview</div>
+    <div class="sources-grid">
+      <a class="source-item" href="https://www.irena.org/Data/Downloads/IRENASTAT" target="_blank">
+        <div class="source-item-org">IRENA</div>
+        <div class="source-item-name">Renewable Power Capacity & Generation Statistics (IRENASTAT)</div>
+        <div class="source-item-type">Statistical database · Annual</div>
+        <div class="source-badge-free">FREE · DOWNLOAD</div>
+      </a>
+      <a class="source-item" href="https://www.irena.org/Publications/2024/Jun/World-Energy-Transitions-Outlook-2024" target="_blank">
+        <div class="source-item-org">IRENA</div>
+        <div class="source-item-name">World Energy Transitions Outlook 2024</div>
+        <div class="source-item-type">Flagship scenario report · Annual</div>
+        <div class="source-badge-free">FREE</div>
+      </a>
+      <a class="source-item" href="https://www.irena.org/Publications/2025/Mar/Offshore-Wind-Outlook-2025" target="_blank">
+        <div class="source-item-org">IRENA</div>
+        <div class="source-item-name">Offshore Wind Tracking Report 2025</div>
+        <div class="source-item-type">Annual tracking report</div>
+        <div class="source-badge-free">FREE</div>
+      </a>
+      <a class="source-item" href="https://gwec.net/global-wind-report/" target="_blank">
+        <div class="source-item-org">GWEC</div>
+        <div class="source-item-name">Global Wind Report 2025</div>
+        <div class="source-item-type">Annual market report</div>
+        <div class="source-badge-free">FREE</div>
+      </a>
+
+      <a class="source-item" href="https://gwec.net/policy/offshorewind" target="_blank">
+        <div class="source-item-org">GWEC · OREAC</div>
+        <div class="source-item-name">Global Offshore Wind Agenda (GOWA) Targets</div>
+        <div class="source-item-type">Policy tracker · Country targets</div>
+        <div class="source-badge-free">FREE</div>
+      </a>
+    </div>
+  </div>
+
+
+  <!-- ══ RESOURCE & POTENTIAL ═══════════════════════════ -->
+  <div id="section-resource" class="section">
+    <div class="section-heading">
+      <h2>Resource &amp; Technical Potential</h2>
+      <p>Global offshore wind technical potential exceeds 71,000 GW — more than twice current global electricity generation capacity. Around 70% is in deep waters suited to floating foundations.</p>
+    </div>
+
+    <div class="kpi-grid">
+      <div class="kpi-card" style="--accent-color:var(--teal-bright)">
+        <div class="kpi-label">Global Technical Potential</div>
+        <div class="kpi-value">71,000<span class="kpi-unit">GW</span></div>
+        <div class="kpi-delta up">Fixed + floating</div>
+      </div>
+      <div class="kpi-card" style="--accent-color:var(--green)">
+        <div class="kpi-label">Fixed-bottom Potential</div>
+        <div class="kpi-value">~20,000<span class="kpi-unit">GW</span></div>
+        <div class="kpi-delta">Depth &lt;60m</div>
+      </div>
+      <div class="kpi-card" style="--accent-color:var(--purple)">
+        <div class="kpi-label">Floating Potential</div>
+        <div class="kpi-value">~51,000<span class="kpi-unit">GW</span></div>
+        <div class="kpi-delta">Depth &gt;60m</div>
+      </div>
+      <div class="kpi-card" style="--accent-color:var(--amber)">
+        <div class="kpi-label">Countries Assessed</div>
+        <div class="kpi-value">115</div>
+        <div class="kpi-delta">ESMAP / IRENA</div>
+      </div>
+      <div class="kpi-card" style="--accent-color:var(--rose)">
+        <div class="kpi-label">Emerging Market Share</div>
+        <div class="kpi-value">25<span class="kpi-unit">%</span></div>
+        <div class="kpi-delta">Low &amp; middle income</div>
+      </div>
+    </div>
+
+    <div class="chart-grid-2">
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Offshore Wind Technical Potential by Country</div>
+            <div class="card-subtitle">GW — fixed + floating combined · Bubble size = potential · Hover for detail</div>
+          </div>
+          <span class="card-badge badge-irena">ESMAP</span>
+        </div>
+        <div style="position:relative;background:var(--navy-mid);border-radius:7px;overflow:hidden;margin-bottom:10px;">
+          <svg id="resource-map" viewBox="0 0 900 400" style="width:100%;display:block;" xmlns="http://www.w3.org/2000/svg">
+            <rect width="900" height="400" fill="#00004A"/>
+            <g stroke="rgba(255,255,255,0.04)" stroke-width="0.5">
+              <line x1="0" y1="100" x2="900" y2="100"/>
+              <line x1="0" y1="200" x2="900" y2="200"/>
+              <line x1="0" y1="300" x2="900" y2="300"/>
+              <line x1="225" y1="0" x2="225" y2="400"/>
+              <line x1="450" y1="0" x2="450" y2="400"/>
+              <line x1="675" y1="0" x2="675" y2="400"/>
+            </g>
+
+            <!-- Continent fills -->
+            <path d="M60,60 L200,50 L210,80 L220,130 L200,180 L170,200 L155,230 L130,240 L110,220 L90,190 L70,160 L50,120 Z" fill="rgba(255,255,255,0.07)" stroke="rgba(255,255,255,0.12)" stroke-width="0.5"/>
+            <path d="M150,250 L200,240 L220,270 L215,320 L200,370 L175,400 L150,390 L130,360 L125,310 L135,270 Z" fill="rgba(255,255,255,0.07)" stroke="rgba(255,255,255,0.12)" stroke-width="0.5"/>
+            <path d="M390,60 L440,55 L460,75 L450,100 L420,110 L400,105 L385,90 Z" fill="rgba(255,255,255,0.07)" stroke="rgba(255,255,255,0.12)" stroke-width="0.5"/>
+            <path d="M405,130 L450,120 L470,140 L475,190 L460,240 L440,280 L420,290 L400,270 L390,220 L390,170 L395,140 Z" fill="rgba(255,255,255,0.07)" stroke="rgba(255,255,255,0.12)" stroke-width="0.5"/>
+            <path d="M470,100 L520,95 L530,120 L510,135 L480,130 Z" fill="rgba(255,255,255,0.07)" stroke="rgba(255,255,255,0.12)" stroke-width="0.5"/>
+            <path d="M490,40 L700,30 L730,60 L720,90 L680,100 L620,95 L570,100 L530,90 L500,70 Z" fill="rgba(255,255,255,0.07)" stroke="rgba(255,255,255,0.12)" stroke-width="0.5"/>
+            <path d="M560,110 L640,100 L670,130 L660,160 L630,170 L590,160 L560,140 Z" fill="rgba(255,255,255,0.07)" stroke="rgba(255,255,255,0.12)" stroke-width="0.5"/>
+            <path d="M680,270 L760,255 L790,280 L785,330 L750,350 L700,340 L675,310 Z" fill="rgba(255,255,255,0.07)" stroke="rgba(255,255,255,0.12)" stroke-width="0.5"/>
+            <g id="resource-tooltip" display="none">
+              <rect id="rt-bg" x="0" y="0" width="200" height="80" rx="5" fill="#00004A" stroke="rgba(195,255,110,0.4)" stroke-width="1"/>
+              <text id="rt-country" x="10" y="18" fill="white"      font-size="11" font-family="Satoshi,Arial" font-weight="bold"/>
+              <text id="rt-fixed"   x="10" y="34" fill="#2CCEC9"    font-size="10" font-family="Satoshi,Arial"/>
+              <text id="rt-float"   x="10" y="50" fill="#C3FF6E"    font-size="10" font-family="Satoshi,Arial"/>
+              <text id="rt-total"   x="10" y="66" fill="#7A8DB8"    font-size="9"  font-family="Satoshi,Arial"/>
+            </g>
+          </svg>
+        </div>
+        <!-- Legend -->
+        <div style="display:flex;gap:16px;flex-wrap:wrap;align-items:center;margin-bottom:6px;">
+          <div style="display:flex;align-items:center;gap:6px;font-size:9px;color:var(--slate-light)"><div style="width:10px;height:10px;border-radius:50%;background:#2CCEC9;opacity:0.85"></div>Fixed-bottom dominant</div>
+          <div style="display:flex;align-items:center;gap:6px;font-size:9px;color:var(--slate-light)"><div style="width:10px;height:10px;border-radius:50%;background:#C3FF6E;opacity:0.85"></div>Floating dominant</div>
+          <div style="display:flex;align-items:center;gap:6px;font-size:9px;color:var(--slate-light)"><div style="width:10px;height:10px;border-radius:50%;background:#004772;opacity:0.85"></div>Mixed</div>
+          <div style="margin-left:auto;font-size:9px;color:var(--slate)">Bubble size ∝ total potential GW</div>
+        </div>
+        <div class="source-label">Source: <a href="https://datacatalog.worldbank.org/search/dataset/0037787/Global-Offshore-Wind-Technical-Potential" target="_blank">World Bank ESMAP Global OSW Technical Potential Dataset (CC BY 4.0)</a></div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Technical Potential by Region</div>
+            <div class="card-subtitle">GW (fixed + floating combined)</div>
+          </div>
+          <span class="card-badge badge-irena">ESMAP</span>
+        </div>
+        <div class="chart-wrap"><canvas id="potentialChart" height="240"></canvas></div>
+        <div class="source-label">Source: <a href="https://datacatalog.worldbank.org/search/dataset/0037787/Global-Offshore-Wind-Technical-Potential" target="_blank">World Bank ESMAP, Global Offshore Wind Technical Potential Dataset</a></div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ══ TECHNOLOGY STATUS ═══════════════════════════════ -->
+
+  <!-- ── SOURCES PANEL: RESOURCE ───────────────────────────── -->
+  <div id="sources-resource" class="sources-panel section">
+    <div class="sources-panel-title">Data Sources — Resource &amp; Potential</div>
+    <div class="sources-grid">
+      <a class="source-item" href="https://globalwindatlas.info/" target="_blank">
+        <div class="source-item-org">IRENA · World Bank · DTU</div>
+        <div class="source-item-name">Global Wind Atlas 4.0</div>
+        <div class="source-item-type">Interactive GIS map · Wind speed &amp; power density · 250m resolution</div>
+        <div class="source-badge-free">FREE · OPEN DATA</div>
+      </a>
+      <a class="source-item" href="https://www.esmap.org/esmap_offshorewind_techpotential_analysis_maps" target="_blank">
+        <div class="source-item-org">World Bank · ESMAP</div>
+        <div class="source-item-name">Offshore Wind Technical Potential Maps</div>
+        <div class="source-item-type">115 countries · Fixed &amp; floating potential (GW)</div>
+        <div class="source-badge-free">FREE · CC BY 4.0</div>
+      </a>
+      <a class="source-item" href="https://datacatalog.worldbank.org/search/dataset/0037787/Global-Offshore-Wind-Technical-Potential" target="_blank">
+        <div class="source-item-org">World Bank</div>
+        <div class="source-item-name">Global OSW Technical Potential Dataset</div>
+        <div class="source-item-type">GIS shapefiles · KMZ · Excel · By World Bank region</div>
+        <div class="source-badge-free">FREE · CC BY 4.0</div>
+      </a>
+      <a class="source-item" href="https://globalatlas.irena.org/" target="_blank">
+        <div class="source-item-org">IRENA</div>
+        <div class="source-item-name">Global Atlas for Renewable Energy</div>
+        <div class="source-item-type">GIS platform · Wind, solar, marine layers · Protected areas overlay</div>
+        <div class="source-badge-free">FREE (registration)</div>
+      </a>
+      <a class="source-item" href="https://emodnet.ec.europa.eu/geoviewer/" target="_blank">
+        <div class="source-item-org">EU · EMODnet</div>
+        <div class="source-item-name">EMODnet Human Activities Map Viewer</div>
+        <div class="source-item-type">Marine spatial data · Offshore wind farm locations · Europe</div>
+        <div class="source-badge-free">FREE · OPEN DATA</div>
+      </a>
+      <a class="source-item" href="https://www.esmap.org/offshore_wind_resource_maps_interactive" target="_blank">
+        <div class="source-item-org">World Bank · ESMAP</div>
+        <div class="source-item-name">ESMAP Interactive OSW Resource Map</div>
+        <div class="source-item-type">Country-level resource maps · Emerging markets focus</div>
+        <div class="source-badge-free">FREE</div>
+      </a>
+    </div>
+  </div>
+
+
+  <div id="section-technology" class="section">
+    <div class="section-heading">
+      <h2>Technology Status</h2>
+      <p>Offshore wind has matured rapidly, with average turbine capacity growing from 3 MW in 2010 to over 10 MW in 2023. Floating wind remains nascent but is accelerating, with 244 GW in the development pipeline.</p>
+    </div>
+
+    <div class="tech-cards">
+      <div class="tech-card">
+        <div class="tech-card-icon">⚓</div>
+        <div class="tech-card-name">Monopile</div>
+        <div class="tech-card-meta">Dominant foundation type. ~78% of European installations. Depth up to 40m.</div>
+        <div class="tech-card-trl">TRL 9 · Commercial</div>
+      </div>
+      <div class="tech-card">
+        <div class="tech-card-icon">🔷</div>
+        <div class="tech-card-name">Jacket / Tripod</div>
+        <div class="tech-card-meta">Used in deeper water (40–60m). More complex but proven at scale.</div>
+        <div class="tech-card-trl">TRL 9 · Commercial</div>
+      </div>
+      <div class="tech-card">
+        <div class="tech-card-icon">🌊</div>
+        <div class="tech-card-name">Semi-submersible</div>
+        <div class="tech-card-meta">Leading floating platform type. Pilots operational; commercialisation by ~2030.</div>
+        <div class="tech-card-trl">TRL 7–8 · Pre-commercial</div>
+      </div>
+      <div class="tech-card">
+        <div class="tech-card-icon">🪝</div>
+        <div class="tech-card-name">Spar Buoy</div>
+        <div class="tech-card-meta">Requires deep water (&gt;100m). Hywind Tampen operational in Norway.</div>
+        <div class="tech-card-trl">TRL 7 · Demonstration</div>
+      </div>
+    </div>
+
+    <div class="chart-grid-2">
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Annual Capacity Additions</div>
+            <div class="card-subtitle">GW added per year, 2015–2024</div>
+          </div>
+          <span class="card-badge badge-irena">IRENASTAT</span>
+        </div>
+        <div class="chart-wrap"><canvas id="additionsChart" height="210"></canvas></div>
+        <div class="source-label">Source: <a href="https://www.irena.org/Data/Downloads/IRENASTAT" target="_blank">IRENA Renewable Power Capacity Statistics 2025</a></div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Offshore Turbine Size Evolution</div>
+            <div class="card-subtitle">Global weighted average offshore turbine capacity (MW)</div>
+          </div>
+          <span class="card-badge badge-third">GWEC OSW 2025</span>
+        </div>
+        <div class="chart-wrap"><canvas id="turbineChart" height="210"></canvas></div>
+        <div class="source-label">Source: <a href="https://gwec.net/global-wind-report/" target="_blank">GWEC Global Offshore Wind Report 2025</a></div>
+      </div>
+    </div>
+
+    <div class="chart-grid-3">
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Top 10 Markets</div>
+            <div class="card-subtitle">Installed capacity, GW, 2024</div>
+          </div>
+          <span class="card-badge badge-irena">IRENASTAT</span>
+        </div>
+        <table class="region-table">
+          <thead><tr>
+            <th>Country</th>
+            <th>GW</th>
+            <th>Share</th>
+          </tr></thead>
+          <tbody id="top10tbody"></tbody>
+        </table>
+      </div>
+
+      <div class="card" style="grid-column: span 2">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Innovation Intensity — Patent Activity</div>
+            <div class="card-subtitle">OSW patent filings by technology sub-category, 2010–2022</div>
+          </div>
+          <span class="card-badge badge-irena">IRENA</span>
+        </div>
+        <div class="chart-wrap"><canvas id="patentChart" height="170"></canvas></div>
+        <div class="source-label">Source: <a href="https://www.irena.org/Publications/2023/Nov/IRENA-EPO-Offshore-Wind-Energy-Patent-Insight-Report" target="_blank">IRENA Offshore Wind Patent Insight Report 2023</a></div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ══ COSTS & ECONOMICS ═══════════════════════════════ -->
+
+  <!-- ── SOURCES PANEL: TECHNOLOGY ────────────────────────── -->
+  <div id="sources-technology" class="sources-panel section">
+    <div class="sources-panel-title">Data Sources — Technology Status</div>
+    <div class="sources-grid">
+      <a class="source-item" href="https://www.irena.org/Data/Downloads/IRENASTAT" target="_blank">
+        <div class="source-item-org">IRENA</div>
+        <div class="source-item-name">Renewable Power Capacity Statistics (IRENASTAT)</div>
+        <div class="source-item-type">Annual additions · Cumulative capacity · Country level</div>
+        <div class="source-badge-free">FREE · DOWNLOAD</div>
+      </a>
+      <a class="source-item" href="https://www.irena.org/Publications/2025/Mar/Offshore-Wind-Outlook-2025" target="_blank">
+        <div class="source-item-org">IRENA</div>
+        <div class="source-item-name">Offshore Wind Tracking Report 2025</div>
+        <div class="source-item-type">Technology trends · Pipeline · Fixed vs floating</div>
+        <div class="source-badge-free">FREE</div>
+      </a>
+      <a class="source-item" href="https://www.irena.org/Publications/2023/Dec/Floating-Offshore-Wind-Outlook" target="_blank">
+        <div class="source-item-org">IRENA</div>
+        <div class="source-item-name">Floating Offshore Wind Outlook 2023</div>
+        <div class="source-item-type">Foundation types · Pipeline · LCOE projections to 2035</div>
+        <div class="source-badge-free">FREE</div>
+      </a>
+      <a class="source-item" href="https://www.irena.org/Publications/2023/Nov/IRENA-EPO-Offshore-Wind-Energy-Patent-Insight-Report" target="_blank">
+        <div class="source-item-org">IRENA · EPO</div>
+        <div class="source-item-name">Offshore Wind Patent Insight Report &amp; Dashboard</div>
+        <div class="source-item-type">Patent filings by sub-technology · 2000–2022 · Interactive</div>
+        <div class="source-badge-free">FREE</div>
+      </a>
+      <a class="source-item" href="https://gwec.net/global-wind-report/" target="_blank">
+        <div class="source-item-org">GWEC</div>
+        <div class="source-item-name">Global Offshore Wind Report 2025</div>
+        <div class="source-item-type">Offshore turbine size trends · Pipeline · Market intelligence</div>
+        <div class="source-badge-free">FREE</div>
+      </a>
+
+    </div>
+  </div>
+
+
+  <div id="section-costs" class="section">
+    <div class="section-heading">
+      <h2>Costs &amp; Economics</h2>
+      <p>Offshore wind LCOE has fallen 62% since 2010, reaching USD 0.079/kWh in 2024. However, costs diverge sharply by region, and floating wind remains 2–3× more expensive than fixed-bottom.</p>
+    </div>
+
+    <div class="kpi-grid">
+      <div class="kpi-card" style="--accent-color:var(--teal-bright)">
+        <div class="kpi-label">Global Avg LCOE 2024</div>
+        <div class="kpi-value">0.079<span class="kpi-unit">$/kWh</span></div>
+        <div class="kpi-delta up">↓ 62% since 2010</div>
+      </div>
+      <div class="kpi-card" style="--accent-color:var(--green)">
+        <div class="kpi-label">Total Installed Cost</div>
+        <div class="kpi-value">2,852<span class="kpi-unit">$/kW</span></div>
+        <div class="kpi-delta up">↓ 48% since 2010</div>
+      </div>
+      <div class="kpi-card" style="--accent-color:var(--amber)">
+        <div class="kpi-label">Lowest LCOE (Denmark)</div>
+        <div class="kpi-value">0.053<span class="kpi-unit">$/kWh</span></div>
+        <div class="kpi-delta">Cap factor: 52%</div>
+      </div>
+      <div class="kpi-card" style="--accent-color:var(--rose)">
+        <div class="kpi-label">Highest LCOE (USA)</div>
+        <div class="kpi-value">0.123<span class="kpi-unit">$/kWh</span></div>
+        <div class="kpi-delta down">↑ Permitting &amp; supply chain</div>
+      </div>
+      <div class="kpi-card" style="--accent-color:var(--purple)">
+        <div class="kpi-label">OSW TIC Projection 2030</div>
+        <div class="kpi-value">&lt;2,316<span class="kpi-unit">$/kW</span></div>
+        <div class="kpi-delta up">IRENA forecast</div>
+      </div>
+    </div>
+
+    <div class="chart-grid-2">
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">LCOE Trend — Global &amp; Regional</div>
+            <div class="card-subtitle">USD/kWh, offshore wind, 2010–2024</div>
+          </div>
+          <span class="card-badge badge-irena">IRENA RPGC 2024</span>
+        </div>
+        <div class="chart-wrap"><canvas id="lcoeChart" height="220"></canvas></div>
+        <div class="legend-row">
+          <div class="legend-item"><div class="legend-dot" style="background:#06B6D4"></div>Global avg</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#10B981"></div>Europe</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#F59E0B"></div>Asia-Pacific</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#8B5CF6"></div>Americas</div>
+        </div>
+        <div class="source-label">Source: <a href="https://www.irena.org/Publications/2025/Jun/Renewable-Power-Generation-Costs-in-2024" target="_blank">IRENA Renewable Power Generation Costs 2024</a></div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Cost Breakdown per kW</div>
+            <div class="card-subtitle">Share of total installed cost, global average</div>
+          </div>
+          <span class="card-badge badge-irena">IRENA RPGC 2024</span>
+        </div>
+        <div class="chart-wrap"><canvas id="costBreakdownChart" height="220"></canvas></div>
+        <div class="source-label">Source: <a href="https://www.irena.org/Publications/2025/Jun/Renewable-Power-Generation-Costs-in-2024" target="_blank">IRENA Renewable Power Generation Costs 2024, Appendix A6</a></div>
+      </div>
+    </div>
+
+    <div class="chart-grid-1">
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Auction Clearing Prices by Country</div>
+            <div class="card-subtitle">Recent offshore wind auction results, USD/MWh</div>
+          </div>
+          <span class="card-badge badge-irena">IRENA Auctions DB</span>
+        </div>
+        <div class="chart-wrap"><canvas id="auctionChart" height="140"></canvas></div>
+        <div class="source-label">Source: <a href="https://www.irena.org/Data/View-data-by-topic/Finance-and-Investment/Renewable-Energy-Auctions" target="_blank">IRENA Renewable Energy Auctions Database</a> · <a href="https://www.irena.org/Publications/2025/Jun/Renewable-Power-Generation-Costs-in-2024" target="_blank">IRENA RPGC 2024</a></div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ══ MARKET & POLICY ════════════════════════════════ -->
+
+  <!-- ── SOURCES PANEL: COSTS ──────────────────────────────── -->
+  <div id="sources-costs" class="sources-panel section">
+    <div class="sources-panel-title">Data Sources — Costs &amp; Economics</div>
+    <div class="sources-grid">
+      <a class="source-item" href="https://www.irena.org/Publications/2025/Jun/Renewable-Power-Generation-Costs-in-2024" target="_blank">
+        <div class="source-item-org">IRENA</div>
+        <div class="source-item-name">Renewable Power Generation Costs 2024</div>
+        <div class="source-item-type">LCOE · TIC · Capacity factors · O&amp;M · Cost of capital · 2010–2024</div>
+        <div class="source-badge-free">FREE · EXCEL DATASET</div>
+      </a>
+      <a class="source-item" href="https://www.irena.org/Data/View-data-by-topic/Costs/Global-Trends" target="_blank">
+        <div class="source-item-org">IRENA</div>
+        <div class="source-item-name">Global LCOE &amp; Auction Values Dashboard</div>
+        <div class="source-item-type">Interactive online tool · LCOE by technology and year</div>
+        <div class="source-badge-free">FREE</div>
+      </a>
+      <a class="source-item" href="https://www.irena.org/Data/View-data-by-topic/Finance-and-Investment/Renewable-Energy-Auctions" target="_blank">
+        <div class="source-item-org">IRENA</div>
+        <div class="source-item-name">Renewable Energy Auctions Database</div>
+        <div class="source-item-type">Auction volumes · Clearing prices · Country · Year · Technology</div>
+        <div class="source-badge-free">FREE · DOWNLOAD</div>
+      </a>
+      <a class="source-item" href="https://www.irena.org/Data/View-data-by-topic/Costs/Wind-Costs" target="_blank">
+        <div class="source-item-org">IRENA</div>
+        <div class="source-item-name">Wind Costs Dashboard (IRENASTAT)</div>
+        <div class="source-item-type">Interactive · Offshore wind LCOE by country · Time series</div>
+        <div class="source-badge-free">FREE</div>
+      </a>
+      <a class="source-item" href="https://www.irena.org/Publications/2023/Dec/Floating-Offshore-Wind-Outlook" target="_blank">
+        <div class="source-item-org">IRENA</div>
+        <div class="source-item-name">Floating Offshore Wind Outlook 2023</div>
+        <div class="source-item-type">Floating wind LCOE projections · Cost drivers · 2023–2035</div>
+        <div class="source-badge-free">FREE</div>
+      </a>
+
+    </div>
+  </div>
+
+
+  <!-- ══ MARKET, POLICY & FINANCE (merged) ════════════ -->
+  <div id="section-market" class="section">
+    <div class="section-heading">
+      <h2>Market, Policy &amp; Finance</h2>
+      <p>2024 was a record year for offshore wind auctions globally. Yet only 8 countries have embedded explicit offshore wind targets in their NDCs — and even the most optimistic 2030 forecasts fall 42% short of the capacity required by the IRENA 1.5°C pathway.</p>
+    </div>
+
+    <!-- Sub-heading: Market & Policy -->
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;margin-top:4px;">
+      <div style="width:3px;height:20px;background:var(--lime);border-radius:2px;flex-shrink:0;"></div>
+      <div style="font-family:'Satoshi',sans-serif;font-weight:600;font-size:13px;color:var(--slate-light);letter-spacing:.04em;">MARKET &amp; POLICY</div>
+    </div>
+
+    <div class="chart-grid-1">
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Auction Volumes — Annual</div>
+            <div class="card-subtitle">GW of OSW capacity awarded per year</div>
+          </div>
+          <span class="card-badge badge-irena">IRENA Auctions DB</span>
+        </div>
+        <div class="chart-wrap"><canvas id="auctionVolChart" height="110"></canvas></div>
+        <div class="source-label">Source: <a href="https://www.irena.org/Data/View-data-by-topic/Finance-and-Investment/Renewable-Energy-Auctions" target="_blank">IRENA Renewable Energy Auctions Database</a> · <a href="https://gwec.net/global-wind-report/" target="_blank">GWEC Global Wind Report 2025</a></div>
+      </div>
+    </div>
+
+    <div class="chart-grid-2" style="grid-template-columns:1fr">
+      <div class="card" style="grid-column:span 2">
+        <div class="card-header">
+          <div>
+            <div class="card-title">National Offshore Wind Targets — 27 Countries</div>
+            <div class="card-subtitle">Bubble size = target GW · Colour = region · Click a country for details</div>
+          </div>
+          <span class="card-badge badge-third">GWEC Global Offshore Wind Report 2025</span>
+        </div>
+
+        <!-- Interactive SVG Map -->
+        <div id="osw-map-wrap" style="position:relative;background:rgba(10,22,40,0.6);border-radius:8px;overflow:hidden;margin-bottom:14px;">
+          <svg id="osw-map" viewBox="0 0 900 440" style="width:100%;display:block;" xmlns="http://www.w3.org/2000/svg">
+            <!-- Simplified world outline paths (fill only, no detail) -->
+            <rect width="900" height="440" fill="#0D1F35"/>
+            <!-- Latitude/Longitude grid lines -->
+            <g stroke="rgba(255,255,255,0.04)" stroke-width="0.5">
+              <line x1="0" y1="110" x2="900" y2="110"/>
+              <line x1="0" y1="220" x2="900" y2="220"/>
+              <line x1="0" y1="330" x2="900" y2="330"/>
+              <line x1="225" y1="0" x2="225" y2="440"/>
+              <line x1="450" y1="0" x2="450" y2="440"/>
+              <line x1="675" y1="0" x2="675" y2="440"/>
+            </g>
+
+            <!-- Continent fills -->
+            <path d="M60,66 L200,55 L210,88 L220,143 L200,198 L170,220 L155,253 L130,264 L110,242 L90,209 L70,176 L50,132 Z" fill="rgba(255,255,255,0.07)" stroke="rgba(255,255,255,0.12)" stroke-width="0.5"/>
+            <path d="M150,275 L200,264 L220,297 L215,352 L200,407 L175,440 L150,429 L130,396 L125,341 L135,297 Z" fill="rgba(255,255,255,0.07)" stroke="rgba(255,255,255,0.12)" stroke-width="0.5"/>
+            <path d="M390,66 L440,61 L460,82 L450,110 L420,121 L400,116 L385,99 Z" fill="rgba(255,255,255,0.07)" stroke="rgba(255,255,255,0.12)" stroke-width="0.5"/>
+            <path d="M405,143 L450,132 L470,154 L475,209 L460,264 L440,308 L420,319 L400,297 L390,242 L390,187 L395,154 Z" fill="rgba(255,255,255,0.07)" stroke="rgba(255,255,255,0.12)" stroke-width="0.5"/>
+            <path d="M470,110 L520,105 L530,132 L510,148 L480,143 Z" fill="rgba(255,255,255,0.07)" stroke="rgba(255,255,255,0.12)" stroke-width="0.5"/>
+            <path d="M490,44 L700,33 L730,66 L720,99 L680,110 L620,105 L570,110 L530,99 L500,77 Z" fill="rgba(255,255,255,0.07)" stroke="rgba(255,255,255,0.12)" stroke-width="0.5"/>
+            <path d="M560,121 L640,110 L670,143 L660,176 L630,187 L590,176 L560,154 Z" fill="rgba(255,255,255,0.07)" stroke="rgba(255,255,255,0.12)" stroke-width="0.5"/>
+            <path d="M680,297 L760,280 L790,308 L785,363 L750,385 L700,374 L675,341 Z" fill="rgba(255,255,255,0.07)" stroke="rgba(255,255,255,0.12)" stroke-width="0.5"/>
+            <line x1="0" y1="220" x2="900" y2="220" stroke="rgba(6,182,212,0.15)" stroke-width="1" stroke-dasharray="4,4"/>
+            <text x="8" y="217" fill="rgba(6,182,212,0.3)" font-size="7" font-family="monospace">EQ</text>
+            <!-- Country bubbles rendered by JS -->
+            <g id="map-bubbles"></g>
+            <!-- Tooltip -->
+            <g id="map-tooltip" display="none">
+              <rect id="tt-bg" x="0" y="0" width="160" height="72" rx="6" fill="#112040" stroke="rgba(6,182,212,0.5)" stroke-width="1"/>
+              <text id="tt-country" x="10" y="18" fill="white" font-size="11" font-family="Arial" font-weight="bold"/>
+              <text id="tt-target" x="10" y="35" fill="#06B6D4" font-size="10" font-family="Arial"/>
+              <text id="tt-year" x="10" y="50" fill="#94A3B8" font-size="9" font-family="Arial"/>
+              <text id="tt-status" x="10" y="64" fill="#94A3B8" font-size="9" font-family="Arial"/>
+            </g>
+          </svg>
+        </div>
+
+        <!-- Country targets table -->
+        <div style="max-height:240px;overflow-y:auto;margin-bottom:8px;">
+        <table class="ndc-table" style="font-size:10px;">
+          <thead><tr>
+            <th>Country</th><th>Target GW</th><th>Year</th><th>Status</th><th>In NDC?</th>
+          </tr></thead>
+          <tbody id="targets-table-body"></tbody>
+        </table>
+        </div>
+
+        <!-- Legend -->
+        <div style="display:flex;gap:20px;flex-wrap:wrap;margin-top:6px;">
+          <div style="display:flex;align-items:center;gap:6px;font-size:10px;color:var(--slate-light)"><div style="width:10px;height:10px;border-radius:50%;background:#06B6D4"></div>Europe</div>
+          <div style="display:flex;align-items:center;gap:6px;font-size:10px;color:var(--slate-light)"><div style="width:10px;height:10px;border-radius:50%;background:#F59E0B"></div>Asia-Pacific</div>
+          <div style="display:flex;align-items:center;gap:6px;font-size:10px;color:var(--slate-light)"><div style="width:10px;height:10px;border-radius:50%;background:#8B5CF6"></div>Americas</div>
+          <div style="display:flex;align-items:center;gap:6px;font-size:10px;color:var(--slate-light)"><div style="width:10px;height:10px;border-radius:50%;background:#F43F5E"></div>Africa & MENA</div>
+          <div style="display:flex;align-items:center;gap:6px;font-size:10px;color:var(--slate-light)"><div style="width:10px;height:10px;border-radius:2px;background:rgba(52,211,153,0.4);border:1px solid #34D399"></div>In NDC</div>
+          <div style="margin-left:auto;font-size:9px;font-family:'DM Mono',monospace;color:var(--slate)">Bubble size ∝ target GW</div>
+        </div>
+        <div class="source-label" style="margin-top:10px">Source: <a href="https://gwec.net/global-wind-report/" target="_blank">GWEC Global Offshore Wind Report 2025</a> · Target appendix · 27 countries with national OSW targets as of 2025</div>
+      </div>
+    </div>
+
+    <div class="data-note">
+      <div class="data-note-icon">⚠️</div>
+      <div><strong>Sources — Policy:</strong> National OSW targets sourced from <strong>GWEC Global Offshore Wind Report 2025</strong> (appendix). 27 countries have national targets totalling 263 GW by 2030 (excl. China). Permitting status and regulatory frameworks not covered — would require <strong>WindEurope</strong> (Europe) and national energy ministry sources.</div>
+    </div>
+
+    <!-- Sub-heading: Finance & Investment -->
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;margin-top:28px;">
+      <div style="width:3px;height:20px;background:var(--amber);border-radius:2px;flex-shrink:0;"></div>
+      <div style="font-family:'Satoshi',sans-serif;font-weight:600;font-size:13px;color:var(--slate-light);letter-spacing:.04em;">FINANCE &amp; INVESTMENT</div>
+    </div>
+
+    <div class="chart-grid-2">
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Public Financial Flows to Wind Sector</div>
+            <div class="card-subtitle">On+offshore wind combined · USD billion by instrument · 2015–2023</div>
+          </div>
+          <span class="card-badge badge-irena">IRENA Finance Flows</span>
+        </div>
+        <div class="chart-wrap"><canvas id="financeChart" height="200"></canvas></div>
+        <div class="source-label">Source: <a href="https://www.irena.org/Data/View-data-by-topic/Finance-and-Investment/Renewable-Energy-Finance-Flows" target="_blank">IRENA Public Financial Flows Dashboard</a></div>
+      </div>
+
+      <div class="card" style="display:flex;flex-direction:column;justify-content:center;">
+        <div style="font-family:'Satoshi',sans-serif;font-weight:700;font-size:14px;color:var(--white);margin-bottom:12px;">OSW Investment Data Gap</div>
+        <div class="data-note" style="margin-bottom:14px;">
+          <div class="data-note-icon">⚠️</div>
+          <div><strong>OSW-specific investment data is not available</strong> from IRENA, GWEC, or ESMAP in a directly comparable, verified format. IRENA's Public Financial Flows cover all wind (on+offshore). IRENA WETO investment needs are for all renewables, not OSW in isolation. A verified OSW-only global investment figure requires BloombergNEF or CPI data — outside the permitted source set for this dashboard.</div>
+        </div>
+        <div style="font-size:11px;color:var(--slate);font-family:'Source Serif 4',Georgia,serif;line-height:1.6;">
+          For context, the IEA projects OSW will need ~$52 billion in annual global investment through 2030 to meet net-zero targets (IEA Net Zero by 2050, 2021). This figure is not from a permitted source and is not displayed as dashboard data.
+        </div>
+      </div>
+    </div>
+
+    <div class="data-note">
+      <div class="data-note-icon">⚠️</div>
+      <div><strong>Data note — Finance:</strong> IRENA's Public Financial Flows Dashboard covers the <strong>combined wind sector</strong> (onshore + offshore). OSW-specific public investment flows are not disaggregated in IRENA data. Private investment data (BloombergNEF, CPI) is also excluded from this source-filtered version.</div>
+    </div>
+
+    <!-- Sub-heading: Climate Commitments & Ambition Gap -->
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;margin-top:28px;">
+      <div style="width:3px;height:20px;background:var(--lime);border-radius:2px;flex-shrink:0;"></div>
+      <div style="font-family:'Satoshi',sans-serif;font-weight:600;font-size:13px;color:var(--slate-light);letter-spacing:.04em;">CLIMATE COMMITMENTS &amp; AMBITION GAP</div>
+    </div>
+
+    <div class="chart-grid-2">
+
+      <!-- NDC TABLE -->
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Countries with OSW in their NDC</div>
+            <div class="card-subtitle">8 countries with explicit offshore wind targets, 2025</div>
+          </div>
+          <span class="card-badge badge-third">GWEC 2025</span>
+        </div>
+        <table class="ndc-table">
+          <thead><tr>
+            <th>Country</th><th>NDC Target</th><th>Year</th><th>Type</th>
+          </tr></thead>
+          <tbody>
+            <tr>
+              <td>🇪🇺 European Union</td>
+              <td>60 GW</td><td>2030</td>
+              <td><span class="ndc-type ndc-unconditional">Unconditional</span></td>
+            </tr>
+            <tr>
+              <td>🇬🇧 United Kingdom</td>
+              <td>50 GW</td><td>2030</td>
+              <td><span class="ndc-type ndc-unconditional">Unconditional</span></td>
+            </tr>
+            <tr>
+              <td>🇯🇵 Japan</td>
+              <td>10 GW</td><td>2030</td>
+              <td><span class="ndc-type ndc-unconditional">Unconditional</span></td>
+            </tr>
+            <tr>
+              <td>🇹🇷 Türkiye</td>
+              <td>5 GW</td><td>2035</td>
+              <td><span class="ndc-type ndc-unconditional">Unconditional</span></td>
+            </tr>
+            <tr>
+              <td>🇦🇿 Azerbaijan</td>
+              <td>1.5 GW</td><td>No date</td>
+              <td><span class="ndc-type ndc-conditional">Conditional</span></td>
+            </tr>
+            <tr>
+              <td>🇧🇧 Barbados</td>
+              <td>150 MW</td><td>2035</td>
+              <td><span class="ndc-type ndc-conditional">Conditional</span></td>
+            </tr>
+            <tr>
+              <td>🇧🇷 Brazil</td>
+              <td>Roadmap</td><td>—</td>
+              <td><span class="ndc-type ndc-qualitative">Qualitative</span></td>
+            </tr>
+            <tr>
+              <td>🇻🇳 Vietnam</td>
+              <td>Policy plan</td><td>—</td>
+              <td><span class="ndc-type ndc-qualitative">Qualitative</span></td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="climate-note">
+          <div class="climate-note-icon">🌍</div>
+          <div>Of 195 UNFCCC parties, only <strong>8</strong> include offshore wind in their NDC. Of 115 countries with identified OSW potential, <strong>88 have no national target</strong> of any kind. NDC 3.0 submissions in 2025 represent the next opportunity to close this gap.</div>
+        </div>
+        <div class="source-label" style="margin-top:12px">Source: <a href="https://gwec.net/global-wind-report/" target="_blank">GWEC Global Offshore Wind Report 2025</a></div>
+      </div>
+
+      <!-- AMBITION GAP -->
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">The Ambition Gap — OSW &amp; the 1.5°C Pathway</div>
+            <div class="card-subtitle">Installed vs forecast vs climate-required capacity (GW)</div>
+          </div>
+          <span class="card-badge badge-third">GWEC · IRENA</span>
+        </div>
+
+        <div style="padding-top:6px">
+          <div class="ambition-year">ACTUAL · 2024</div>
+          <div class="ambition-label">Installed capacity <strong>82.9 GW</strong></div>
+          <div class="ambition-track"><div class="ambition-fill" style="width:16.6%; background:var(--teal-bright)"></div></div>
+
+          <div class="ambition-year" style="margin-top:14px">GWEC FORECAST · 2030</div>
+          <div class="ambition-label">Best-case trajectory <strong>238 GW</strong></div>
+          <div class="ambition-track"><div class="ambition-fill" style="width:47.6%; background:var(--lime)"></div></div>
+
+          <div class="ambition-year" style="margin-top:14px">IRENA 1.5°C MINIMUM · 2030</div>
+          <div class="ambition-label">Climate-required minimum <strong>413 GW</strong></div>
+          <div class="ambition-track"><div class="ambition-fill" style="width:82.6%; background:var(--amber)"></div></div>
+
+          <div class="ambition-year" style="margin-top:14px">GOWA TARGET · 2030</div>
+          <div class="ambition-label">Global alliance target <strong>500 GW</strong></div>
+          <div class="ambition-track"><div class="ambition-fill" style="width:100%; background:var(--rose)"></div></div>
+
+          <div class="ambition-year" style="margin-top:14px">IRENA 1.5°C PATHWAY · 2040</div>
+          <div class="ambition-label">Long-term scenario <strong>1,578 GW</strong></div>
+          <div class="ambition-track"><div class="ambition-fill" style="width:100%; background:#8B5CF6; opacity:0.5"></div></div>
+
+          <div class="ambition-year" style="margin-top:14px">GOWA TARGET · 2050</div>
+          <div class="ambition-label">Long-term alliance target <strong>2,000 GW</strong></div>
+          <div class="ambition-track"><div class="ambition-fill" style="width:100%; background:#64748B; opacity:0.4"></div></div>
+        </div>
+
+        <div class="climate-note" style="margin-top:16px">
+          <div class="climate-note-icon">⚡</div>
+          <div>Even the GWEC's most optimistic 2030 forecast leaves a <strong>175 GW gap</strong> vs the IRENA 1.5°C minimum — equivalent to twice the current entire installed base. Annual additions must nearly triple from 11 GW (2024) to ~26 GW every year through 2030.</div>
+        </div>
+        <div class="source-label" style="margin-top:12px">Source: <a href="https://gwec.net/global-wind-report/" target="_blank">GWEC Global Offshore Wind Report 2025</a> · <a href="https://www.irena.org/Publications/2024/Jun/World-Energy-Transitions-Outlook-2024" target="_blank">IRENA WETO 2024</a></div>
+      </div>
+    </div>
+
+    <div class="data-note" style="border-color:rgba(52,211,153,0.2);background:rgba(52,211,153,0.05)">
+      <div class="data-note-icon">🌿</div>
+      <div style="color:#A7F3D0"><strong>Data gap — Climate commitments:</strong> Only 8 NDCs explicitly mention offshore wind (GWEC, 2025). A comprehensive NDC/LT-LEDS database tracking OSW-specific targets does not currently exist as a structured dataset. The UNFCCC NDC Registry requires manual review of individual country submissions. Future versions of this dashboard could integrate the <strong>Climate Watch</strong> platform (WRI) or a dedicated NDC OSW tracker as supplementary sources.</div>
+    </div>
+  </div>
+
+
+  <!-- ══ SOCIO-ECONOMIC ══════════════════════════════════ -->
+
+  <!-- ── SOURCES PANEL: MARKET + FINANCE (merged) ──────────── -->
+  <div id="sources-market" class="sources-panel section">
+    <div class="sources-panel-title">Data Sources — Market, Policy, Finance &amp; Climate</div>
+    <div class="sources-grid">
+      <a class="source-item" href="https://www.irena.org/Data/View-data-by-topic/Finance-and-Investment/Renewable-Energy-Auctions" target="_blank">
+        <div class="source-item-org">IRENA</div>
+        <div class="source-item-name">Renewable Energy Auctions Database</div>
+        <div class="source-item-type">Auction volumes · Clearing prices · Country · Technology</div>
+        <div class="source-badge-free">FREE · DOWNLOAD</div>
+      </a>
+      <a class="source-item" href="https://www.irena.org/Data/View-data-by-topic/Finance-and-Investment/Renewable-Energy-Finance-Flows" target="_blank">
+        <div class="source-item-org">IRENA</div>
+        <div class="source-item-name">Renewable Energy Finance Flows Dashboard</div>
+        <div class="source-item-type">Public flows · By donor, instrument, recipient · 2014–2023</div>
+        <div class="source-badge-free">FREE (login may be required)</div>
+      </a>
+
+      <a class="source-item" href="https://www.irena.org/Publications/2024/Jun/World-Energy-Transitions-Outlook-2024" target="_blank">
+        <div class="source-item-org">IRENA</div>
+        <div class="source-item-name">World Energy Transitions Outlook 2024</div>
+        <div class="source-item-type">Policy targets · Investment needs scenarios · OSW to 2030/2050</div>
+        <div class="source-badge-free">FREE</div>
+      </a>
+      <a class="source-item" href="https://gwec.net/global-wind-report/" target="_blank">
+        <div class="source-item-org">GWEC</div>
+        <div class="source-item-name">Global Wind Report 2025</div>
+        <div class="source-item-type">Market targets · Auction design · Pipeline by country</div>
+        <div class="source-badge-free">FREE</div>
+      </a>
+
+
+
+
+      <a class="source-item" href="https://gwec.net/global-wind-report/" target="_blank">
+        <div class="source-item-org">GWEC</div>
+        <div class="source-item-name">Global Offshore Wind Report 2025 — NDC chapter</div>
+        <div class="source-item-type">8 NDC countries · Target GW · Year · Conditionality · Ambition gap analysis</div>
+        <div class="source-badge-free">FREE</div>
+      </a>
+      <a class="source-item" href="https://www.irena.org/Publications/2024/Jun/World-Energy-Transitions-Outlook-2024" target="_blank">
+        <div class="source-item-org">IRENA</div>
+        <div class="source-item-name">World Energy Transitions Outlook 2024</div>
+        <div class="source-item-type">1.5°C OSW capacity pathway · 413 GW by 2030 · 1,578 GW by 2040</div>
+        <div class="source-badge-free">FREE</div>
+      </a>
+    </div>
+  </div>
+
+
+  <div id="section-jobs" class="section">
+    <div class="section-heading">
+      <h2>Socio-economic Impact</h2>
+      <p>The wind sector employed approximately 1.5 million people globally in 2023. Offshore wind is a growing segment, with supply chain jobs in manufacturing, installation, and O&M driving regional economic benefits.</p>
+    </div>
+
+    <div class="kpi-grid">
+      <div class="kpi-card" style="--accent-color:var(--teal-bright)">
+        <div class="kpi-label">Wind Sector Jobs (all wind)</div>
+        <div class="kpi-value">1.5<span class="kpi-unit">M</span></div>
+        <div class="kpi-delta warn">⚠ On+offshore — not OSW only</div>
+      </div>
+      <div class="kpi-card" style="--accent-color:var(--green)">
+        <div class="kpi-label">Asia Share (all wind)</div>
+        <div class="kpi-value">59<span class="kpi-unit">%</span></div>
+        <div class="kpi-delta warn">⚠ On+offshore combined</div>
+      </div>
+      <div class="kpi-card" style="--accent-color:var(--amber)">
+        <div class="kpi-label">Europe Share (all wind)</div>
+        <div class="kpi-value">22<span class="kpi-unit">%</span></div>
+        <div class="kpi-delta warn">⚠ On+offshore combined</div>
+      </div>
+      <div class="kpi-card" style="--accent-color:var(--purple)">
+        <div class="kpi-label">Americas Share (all wind)</div>
+        <div class="kpi-value">17.6<span class="kpi-unit">%</span></div>
+        <div class="kpi-delta warn">⚠ On+offshore combined</div>
+      </div>
+      <div class="kpi-card" style="--accent-color:var(--rose)">
+        <div class="kpi-label">LCOE Cost of Capital</div>
+        <div class="kpi-value">~30<span class="kpi-unit">%</span></div>
+        <div class="kpi-delta warn">Share in emerging mkts</div>
+      </div>
+    </div>
+
+    <div class="chart-grid-2">
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Wind Sector Employment by Region</div>
+            <div class="card-subtitle">Thousands of jobs, 2023 (on+offshore)</div>
+          </div>
+          <span class="card-badge badge-irena">IRENA–ILO</span>
+        </div>
+        <div class="chart-wrap"><canvas id="jobsChart" height="220"></canvas></div>
+        <div class="source-label">Source: <a href="https://www.irena.org/Publications/2025/Oct/Renewable-Energy-and-Jobs-Annual-Review-2025" target="_blank">IRENA–ILO Renewable Energy and Jobs Annual Review 2025</a></div>
+        <div class="jobs-note">
+          <strong>⚠ Data limitation — not OSW-specific:</strong> IRENA–ILO data covers the <strong>combined wind sector (onshore + offshore)</strong>. Offshore wind employment cannot be disaggregated from these figures. All values in this module are for total wind. An OSW-specific employment dataset does not currently exist from IRENA, GWEC, or ESMAP.
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Cost of Capital Impact on LCOE</div>
+            <div class="card-subtitle">How financing costs drive LCOE disparities across markets</div>
+          </div>
+          <span class="card-badge badge-irena">IRENA RPGC 2024</span>
+        </div>
+        <div class="chart-wrap"><canvas id="waccChart" height="220"></canvas></div>
+        <div class="source-label">Source: <a href="https://www.irena.org/Publications/2025/Jun/Renewable-Power-Generation-Costs-in-2024" target="_blank">IRENA Renewable Power Generation Costs 2024</a> — Cost of capital analysis</div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ── SOURCES PANEL: JOBS ────────────────────────────────── -->
+  <div id="sources-jobs" class="sources-panel section">
+    <div class="sources-panel-title">Data Sources — Socio-economic</div>
+    <div class="sources-grid">
+      <a class="source-item" href="https://www.irena.org/Publications/2025/Oct/Renewable-Energy-and-Jobs-Annual-Review-2025" target="_blank">
+        <div class="source-item-org">IRENA · ILO</div>
+        <div class="source-item-name">Renewable Energy and Jobs — Annual Review 2025</div>
+        <div class="source-item-type">Wind sector employment by country · Job types · Gender data</div>
+        <div class="source-badge-free">FREE</div>
+      </a>
+      <a class="source-item" href="https://www.irena.org/Data/View-data-by-topic/Benefits/Renewable-Energy-Employment-by-Country" target="_blank">
+        <div class="source-item-org">IRENA</div>
+        <div class="source-item-name">Renewable Energy Employment by Country (IRENASTAT)</div>
+        <div class="source-item-type">Country-level employment · Interactive dashboard</div>
+        <div class="source-badge-free">FREE</div>
+      </a>
+      <a class="source-item" href="https://www.irena.org/Publications/2025/Jun/Renewable-Power-Generation-Costs-in-2024" target="_blank">
+        <div class="source-item-org">IRENA</div>
+        <div class="source-item-name">Renewable Power Generation Costs 2024</div>
+        <div class="source-item-type">Cost of capital by country · WACC analysis · LCOE disparity</div>
+        <div class="source-badge-free">FREE · EXCEL DATASET</div>
+      </a>
+      <a class="source-item" href="https://gwec.net/global-wind-report/" target="_blank">
+        <div class="source-item-org">GWEC</div>
+        <div class="source-item-name">Global Wind Report 2025 — Socio-economic chapter</div>
+        <div class="source-item-type">OSW-specific employment estimates · Supply chain jobs</div>
+        <div class="source-badge-free">FREE</div>
+      </a>
+
+
+    </div>
+  </div>
+
+  </div><!-- /content -->
+</main>
+
+<script>
+// ── NAVIGATION ──────────────────────────────────────────────
+const sectionTitles = {
+  overview: 'Overview',
+  resource: 'Resource & Potential',
+  technology: 'Technology Status',
+  costs: 'Costs & Economics',
+  market: 'Market, Policy & Finance',
+  jobs: 'Socio-economic Impact'
+};
+
+function showSection(id, el) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('section-' + id).classList.add('active');
+  const srcPanel = document.getElementById('sources-' + id);
+  if (srcPanel) srcPanel.classList.add('active');
+  el.classList.add('active');
+  document.getElementById('page-title').textContent = sectionTitles[id];
+  // Resize all Chart.js instances so they render correctly in newly visible sections
+  setTimeout(function() {
+    Object.values(Chart.instances).forEach(function(chart) {
+      chart.resize();
+    });
+  }, 50);
+}
+
+function toggleFilter(el) {
+  el.classList.toggle('active');
+}
+
+// ── CHART DEFAULTS ──────────────────────────────────────────
+Chart.defaults.color = '#94A3B8';
+Chart.defaults.font.family = "'Satoshi', sans-serif";
+Chart.defaults.font.size = 11;
+
+const gridColor  = 'rgba(255,255,255,0.05)';
+const axisColor  = 'rgba(255,255,255,0.12)';
+
+function baseOpts(extra = {}) {
+  return {
+    responsive: true,
+    maintainAspectRatio: true,
+    plugins: { legend: { display: false }, tooltip: { backgroundColor: '#112040', borderColor: 'rgba(44,206,201,0.4)', borderWidth: 1, padding: 10 } },
+    scales: {
+      x: { grid: { color: gridColor }, border: { color: axisColor } },
+      y: { grid: { color: gridColor }, border: { color: axisColor } }
+    },
+    ...extra
+  };
+}
+
+// ── CAPACITY CHART ──────────────────────────────────────────
+const years = ['2010','2011','2012','2013','2014','2015','2016','2017','2018','2019','2020','2021','2022','2023','2024'];
+const cumCap = [3.1, 4.1, 5.5, 7.1, 8.8, 12.1, 14.4, 18.8, 23.1, 28.3, 35.3, 56.0, 63.2, 69.7, 82.9];
+
+
+document.addEventListener('DOMContentLoaded', function() {
+
+new Chart(document.getElementById('capacityChart'), {
+  type: 'line',
+  data: {
+    labels: years,
+    datasets: [{
+      data: cumCap,
+      borderColor: '#2CCEC9',
+      backgroundColor: 'rgba(195,255,110,0.08)',
+      fill: true,
+      tension: 0.4,
+      pointBackgroundColor: '#2CCEC9',
+      pointRadius: 3,
+      pointHoverRadius: 6,
+      borderWidth: 2.5
+    }]
+  },
+  options: {
+    ...baseOpts(),
+    plugins: {
+      legend: { display: false },
+      tooltip: { backgroundColor: '#112040', borderColor: 'rgba(44,206,201,0.4)', borderWidth: 1, padding: 10, callbacks: { label: ctx => ` ${ctx.raw} GW` } }
+    }
+  }
+});
+
+// ── REGION PIE ──────────────────────────────────────────────
+new Chart(document.getElementById('regionPieChart'), {
+  type: 'doughnut',
+  data: {
+    labels: ['China', 'Europe', 'Asia-Pac (excl.CN)', 'Americas', 'Other'],
+    datasets: [{
+      data: [45, 43, 9.5, 2.5, 0.5],
+      backgroundColor: ['#C3FF6E','#2CCEC9','#004772','#F5B800','#F43F5E'],
+      borderWidth: 2,
+      borderColor: '#112040',
+      hoverOffset: 6
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: true,
+    cutout: '60%',
+    plugins: {
+      legend: { display: true, position: 'bottom', labels: { padding: 12, font: { size: 10 }, boxWidth: 12, color: '#94A3B8' } },
+      tooltip: { backgroundColor: '#112040', borderColor: 'rgba(44,206,201,0.4)', borderWidth: 1, padding: 10, callbacks: { label: ctx => ` ${ctx.label}: ${ctx.raw}%` } }
+    }
+  }
+});
+
+// ── POTENTIAL CHART ─────────────────────────────────────────
+new Chart(document.getElementById('potentialChart'), {
+  type: 'bar',
+  data: {
+    labels: ['Asia-Pac','Europe','Americas','Africa','MENA','Other'],
+    datasets: [
+      { label: 'Fixed-bottom', data: [6200, 4100, 4800, 1900, 1200, 1800], backgroundColor: '#004772' },
+      { label: 'Floating',    data: [15000, 8500, 12000, 5000, 4000, 6500], backgroundColor: 'rgba(139,92,246,0.7)' }
+    ]
+  },
+  options: {
+    ...baseOpts(),
+    indexAxis: 'y',
+    plugins: {
+      legend: { display: true, position: 'bottom', labels: { padding: 10, font: { size: 10 }, boxWidth: 10, color: '#94A3B8' } },
+      tooltip: { backgroundColor: '#112040', borderColor: 'rgba(44,206,201,0.4)', borderWidth: 1, padding: 10, callbacks: { label: ctx => ` ${ctx.dataset.label}: ${ctx.raw.toLocaleString()} GW` } }
+    },
+    scales: {
+      x: { stacked: true, grid: { color: gridColor }, border: { color: axisColor } },
+      y: { stacked: true, grid: { color: gridColor }, border: { color: axisColor } }
+    }
+  }
+});
+
+// ── TOP 10 TABLE ────────────────────────────────────────────
+const top10 = [
+  ['🇨🇳 China', 37.3, 45.0],
+  ['🇬🇧 United Kingdom', 14.8, 17.9],
+  ['🇩🇪 Germany', 8.6, 10.4],
+  ['🇳🇱 Netherlands', 3.6, 4.3],
+  ['🇩🇰 Denmark', 2.6, 3.1],
+  ['🇰🇷 South Korea', 1.7, 2.1],
+  ['🇧🇪 Belgium', 2.3, 2.8],
+  ['🇹🇼 Taiwan (CN)', 2.1, 2.5],
+  ['🇺🇸 United States', 1.9, 2.3],
+  ['🇸🇪 Sweden', 0.9, 1.1],
+];
+const tbody = document.getElementById('top10tbody');
+top10.forEach(([c, gw, sh]) => {
+  const tr = document.createElement('tr');
+  const maxBar = 120;
+  const barW = Math.round((gw / 37.3) * maxBar);
+  tr.innerHTML = `<td>${c}</td><td><span style="font-family:'DM Mono',monospace">${gw}</span><span class="bar-inline" style="width:${barW}px"></span></td><td class="share-text">${sh}%</td>`;
+  tbody.appendChild(tr);
+});
+
+// ── ADDITIONS CHART ─────────────────────────────────────────
+new Chart(document.getElementById('additionsChart'), {
+  type: 'bar',
+  data: {
+    labels: ['2015','2016','2017','2018','2019','2020','2021','2022','2023','2024'],
+    datasets: [{
+      label: 'Annual additions (GW)',
+      data: [3.3, 2.3, 4.4, 4.3, 5.2, 7.0, 20.7, 7.2, 6.5, 11.3],
+      backgroundColor: ctx => ctx.raw >= 10 ? '#06B6D4' : 'rgba(6,182,212,0.5)',
+      borderRadius: 4,
+      borderWidth: 0
+    }]
+  },
+  options: baseOpts()
+});
+
+// ── TURBINE CHART ───────────────────────────────────────────
+new Chart(document.getElementById('turbineChart'), {
+  type: 'line',
+  data: {
+    labels: ['2010','2012','2014','2016','2018','2020','2022','2023'],
+    datasets: [{
+      data: [3.0, 3.4, 3.7, 4.2, 5.5, 7.1, 8.8, 10.0],
+      borderColor: '#10B981',
+      backgroundColor: 'rgba(16,185,129,0.08)',
+      fill: true,
+      tension: 0.4,
+      pointBackgroundColor: '#10B981',
+      pointRadius: 4,
+      borderWidth: 2.5
+    }]
+  },
+  options: {
+    ...baseOpts(),
+    plugins: {
+      legend: { display: false },
+      tooltip: { backgroundColor: '#112040', borderColor: 'rgba(16,185,129,0.4)', borderWidth: 1, padding: 10, callbacks: { label: ctx => ` ${ctx.raw} MW avg turbine` } }
+    },
+    scales: {
+      x: { grid: { color: gridColor }, border: { color: axisColor } },
+      y: { grid: { color: gridColor }, border: { color: axisColor }, ticks: { callback: v => v + ' MW' } }
+    }
+  }
+});
+
+// ── PATENT CHART ────────────────────────────────────────────
+new Chart(document.getElementById('patentChart'), {
+  type: 'bar',
+  data: {
+    labels: ['2010','2011','2012','2013','2014','2015','2016','2017','2018','2019','2020','2021','2022'],
+    datasets: [
+      { label: 'Foundations',    data: [120,145,180,210,250,280,310,340,360,380,400,420,430], backgroundColor: '#004772', stack: 'a' },
+      { label: 'Turbine systems', data: [90,110,130,160,200,230,270,300,320,340,360,380,390], backgroundColor: '#2CCEC9', stack: 'a' },
+      { label: 'Grid & elec.',   data: [60,75,90,110,140,170,200,220,240,260,270,280,290], backgroundColor: '#10B981', stack: 'a' },
+      { label: 'Floating',       data: [20,30,45,65,90,120,160,200,240,280,310,350,380], backgroundColor: '#8B5CF6', stack: 'a' },
+    ]
+  },
+  options: {
+    ...baseOpts(),
+    plugins: {
+      legend: { display: true, position: 'bottom', labels: { padding: 10, font: { size: 10 }, boxWidth: 10, color: '#94A3B8' } },
+      tooltip: { backgroundColor: '#112040', borderColor: 'rgba(44,206,201,0.4)', borderWidth: 1, padding: 10 }
+    },
+    scales: {
+      x: { stacked: true, grid: { color: gridColor }, border: { color: axisColor } },
+      y: { stacked: true, grid: { color: gridColor }, border: { color: axisColor } }
+    }
+  }
+});
+
+// ── LCOE CHART ──────────────────────────────────────────────
+new Chart(document.getElementById('lcoeChart'), {
+  type: 'line',
+  data: {
+    labels: ['2010','2012','2014','2016','2018','2020','2022','2023','2024'],
+    datasets: [
+      { label: 'Global avg',  data: [0.203,0.185,0.172,0.151,0.128,0.099,0.081,0.076,0.079], borderColor: '#2CCEC9', tension: 0.4, borderWidth: 2.5, pointRadius: 3, fill: false },
+      { label: 'Europe',      data: [0.190,0.172,0.158,0.140,0.115,0.090,0.072,0.065,0.080], borderColor: '#10B981', tension: 0.4, borderWidth: 2, borderDash: [4,3], pointRadius: 2, fill: false },
+      { label: 'Asia-Pacific',data: [0.210,0.195,0.180,0.160,0.130,0.095,0.076,0.070,0.071], borderColor: '#F59E0B', tension: 0.4, borderWidth: 2, borderDash: [4,3], pointRadius: 2, fill: false },
+      { label: 'Americas',    data: [0.225,0.210,0.195,0.175,0.150,0.120,0.105,0.110,0.123], borderColor: '#8B5CF6', tension: 0.4, borderWidth: 2, borderDash: [4,3], pointRadius: 2, fill: false },
+    ]
+  },
+  options: {
+    ...baseOpts(),
+    plugins: {
+      legend: { display: false },
+      tooltip: { backgroundColor: '#112040', borderColor: 'rgba(44,206,201,0.4)', borderWidth: 1, padding: 10, mode: 'index', intersect: false, callbacks: { label: ctx => ` ${ctx.dataset.label}: $${ctx.raw}/kWh` } }
+    },
+    scales: {
+      x: { grid: { color: gridColor }, border: { color: axisColor } },
+      y: { grid: { color: gridColor }, border: { color: axisColor }, ticks: { callback: v => '$' + v.toFixed(3) } }
+    }
+  }
+});
+
+// ── COST BREAKDOWN ──────────────────────────────────────────
+new Chart(document.getElementById('costBreakdownChart'), {
+  type: 'doughnut',
+  data: {
+    labels: ['Turbine & nacelle','Foundation & substructure','Offshore cable','Installation','O&M (annual)','Development & soft costs'],
+    datasets: [{
+      data: [32, 22, 15, 14, 10, 7],
+      backgroundColor: ['#06B6D4','#0E7490','#10B981','#F59E0B','#8B5CF6','#64748B'],
+      borderWidth: 2,
+      borderColor: '#112040',
+      hoverOffset: 6
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: true,
+    cutout: '55%',
+    plugins: {
+      legend: { display: true, position: 'right', labels: { padding: 8, font: { size: 9 }, boxWidth: 10, color: '#94A3B8' } },
+      tooltip: { backgroundColor: '#112040', borderColor: 'rgba(44,206,201,0.4)', borderWidth: 1, padding: 10, callbacks: { label: ctx => ` ${ctx.label}: ${ctx.raw}%` } }
+    }
+  }
+});
+
+// ── AUCTION PRICES ──────────────────────────────────────────
+new Chart(document.getElementById('auctionChart'), {
+  type: 'bar',
+  data: {
+    labels: ['Denmark\n(2024)','Germany\n(2024)','Poland\n(2025)','UK AR7\n(2024)','Norway\n(2023)','Netherlands\n(2023)','S.Korea\n(2024)','Taiwan\n(2023)','Brazil\n(2024)','USA\n(2023)'],
+    datasets: [{
+      data: [53, 69, 133, 122, 98, 0, 95, 88, 105, 150],
+      backgroundColor: ctx => {
+        const v = ctx.raw;
+        if (v === 0) return '#334155';
+        if (v < 80) return '#10B981';
+        if (v < 120) return '#F59E0B';
+        return '#F43F5E';
+      },
+      borderRadius: 4,
+      borderWidth: 0
+    }]
+  },
+  options: {
+    ...baseOpts(),
+    plugins: {
+      legend: { display: false },
+      tooltip: { backgroundColor: '#112040', borderColor: 'rgba(44,206,201,0.4)', borderWidth: 1, padding: 10,
+        callbacks: { label: ctx => ctx.raw === 0 ? ' No subsidy / zero bid' : ` $${ctx.raw}/MWh` } }
+    },
+    scales: {
+      x: { grid: { color: gridColor }, border: { color: axisColor }, ticks: { font: { size: 9 } } },
+      y: { grid: { color: gridColor }, border: { color: axisColor }, ticks: { callback: v => '$' + v } }
+    }
+  }
+});
+
+// ── AUCTION VOLUME ──────────────────────────────────────────
+new Chart(document.getElementById('auctionVolChart'), {
+  type: 'bar',
+  data: {
+    labels: ['2018','2019','2020','2021','2022','2023','2024'],
+    datasets: [
+      { label: 'Europe',     data: [8.2, 9.1, 12.3, 17.5, 18.0, 14.2, 23.2], backgroundColor: '#2CCEC9', stack: 'a' },
+      { label: 'China',      data: [5.0, 6.5, 8.0, 10.0, 9.0, 14.0, 17.4], backgroundColor: '#F59E0B', stack: 'a' },
+      { label: 'Asia-Pac',   data: [1.0, 1.5, 2.0, 3.5, 4.0, 6.0, 8.4], backgroundColor: '#10B981', stack: 'a' },
+      { label: 'Rest',       data: [0.3, 0.5, 0.8, 1.0, 1.5, 2.8, 7.3], backgroundColor: '#8B5CF6', stack: 'a' },
+    ]
+  },
+  options: {
+    ...baseOpts(),
+    plugins: {
+      legend: { display: true, position: 'bottom', labels: { padding: 10, font: { size: 10 }, boxWidth: 10, color: '#94A3B8' } },
+      tooltip: { backgroundColor: '#112040', borderColor: 'rgba(44,206,201,0.4)', borderWidth: 1, padding: 10, mode: 'index', intersect: false, callbacks: { label: ctx => ` ${ctx.dataset.label}: ${ctx.raw} GW` } }
+    },
+    scales: {
+      x: { stacked: true, grid: { color: gridColor }, border: { color: axisColor } },
+      y: { stacked: true, grid: { color: gridColor }, border: { color: axisColor }, ticks: { callback: v => v + ' GW' } }
+    }
+  }
+});
+
+// ── FINANCE CHART ───────────────────────────────────────────
+new Chart(document.getElementById('financeChart'), {
+  type: 'bar',
+  data: {
+    labels: ['2015','2016','2017','2018','2019','2020','2021','2022','2023'],
+    datasets: [
+      { label: 'Loans',        data: [3.2, 4.1, 5.2, 6.8, 8.1, 9.2, 10.5, 9.8, 8.4], backgroundColor: '#2CCEC9', stack: 'a' },
+      { label: 'Grants',       data: [0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.1, 1.0, 0.9], backgroundColor: '#10B981', stack: 'a' },
+      { label: 'Equity',       data: [0.8, 1.0, 1.3, 1.5, 1.8, 2.0, 2.3, 2.1, 1.8], backgroundColor: '#F59E0B', stack: 'a' },
+    ]
+  },
+  options: {
+    ...baseOpts(),
+    plugins: {
+      legend: { display: true, position: 'bottom', labels: { padding: 10, font: { size: 10 }, boxWidth: 10, color: '#94A3B8' } },
+      tooltip: { backgroundColor: '#112040', borderColor: 'rgba(44,206,201,0.4)', borderWidth: 1, padding: 10, mode: 'index', intersect: false, callbacks: { label: ctx => ` ${ctx.dataset.label}: $${ctx.raw}bn` } }
+    },
+    scales: {
+      x: { stacked: true, grid: { color: gridColor }, border: { color: axisColor } },
+      y: { stacked: true, grid: { color: gridColor }, border: { color: axisColor }, ticks: { callback: v => '$' + v + 'bn' } }
+    }
+  }
+});
+
+// ── JOBS CHART ──────────────────────────────────────────────
+new Chart(document.getElementById('jobsChart'), {
+  type: 'bar',
+  data: {
+    labels: ['China','Europe','Americas','SE Asia','India','Other'],
+    datasets: [{
+      label: 'Wind jobs (000s)',
+      data: [885, 330, 264, 68, 60, 21],
+      backgroundColor: ['#F59E0B','#06B6D4','#8B5CF6','#10B981','#F43F5E','#64748B'],
+      borderRadius: 4,
+      borderWidth: 0
+    }]
+  },
+  options: baseOpts()
+});
+
+// ── WACC CHART ──────────────────────────────────────────────
+new Chart(document.getElementById('waccChart'), {
+  type: 'scatter',
+  data: {
+    datasets: [{
+      label: 'Countries',
+      data: [
+        {x: 3.5, y: 0.053, label: 'Denmark'},
+        {x: 4.2, y: 0.065, label: 'Germany'},
+        {x: 4.8, y: 0.071, label: 'Netherlands'},
+        {x: 5.1, y: 0.075, label: 'UK'},
+        {x: 6.5, y: 0.085, label: 'South Korea'},
+        {x: 7.0, y: 0.090, label: 'Taiwan'},
+        {x: 8.5, y: 0.105, label: 'Brazil'},
+        {x: 10.2, y: 0.118, label: 'India'},
+        {x: 11.5, y: 0.123, label: 'USA'},
+        {x: 12.0, y: 0.130, label: 'Philippines'},
+        {x: 14.0, y: 0.145, label: 'Vietnam'},
+      ],
+      backgroundColor: ctx => {
+        const x = ctx.raw.x;
+        if (x < 6) return '#10B981';
+        if (x < 10) return '#F59E0B';
+        return '#F43F5E';
+      },
+      pointRadius: 7,
+      pointHoverRadius: 9
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: true,
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        backgroundColor: '#112040',
+        borderColor: 'rgba(44,206,201,0.4)',
+        borderWidth: 1,
+        padding: 10,
+        callbacks: {
+          label: ctx => [`${ctx.raw.label}`, `WACC: ${ctx.raw.x}%`, `LCOE: $${ctx.raw.y}/kWh`]
+        }
+      }
+    },
+    scales: {
+      x: { title: { display: true, text: 'Cost of capital / WACC (%)', color: '#94A3B8', font: { size: 10 } }, grid: { color: gridColor }, border: { color: axisColor }, ticks: { callback: v => v + '%' } },
+      y: { title: { display: true, text: 'LCOE ($/kWh)', color: '#94A3B8', font: { size: 10 } }, grid: { color: gridColor }, border: { color: axisColor }, ticks: { callback: v => '$' + v } }
+    }
+  }
+});
+
+}); // end DOMContentLoaded — charts
+
+// ── RESOURCE POTENTIAL MAP ══════════════════════════════════════
+// Data: World Bank ESMAP Global OSW Technical Potential Dataset
+// fixed = GW fixed-bottom (<60m), float = GW floating (>60m)
+var RESOURCE_DATA = [
+  {c:"United Kingdom",    f:"🇬🇧", fixed:190,  float:250,  lat:56.0,  lng:-3.5},
+  {c:"Norway",            f:"🇳🇴", fixed:60,   float:1400, lat:65.0,  lng:14.0},
+  {c:"United States",     f:"🇺🇸", fixed:2100, float:7200, lat:38.0,  lng:-97.0},
+  {c:"China",             f:"🇨🇳", fixed:2500, float:5000, lat:35.0,  lng:115.0},
+  {c:"Australia",         f:"🇦🇺", fixed:1200, float:3600, lat:-27.0, lng:133.0},
+  {c:"Japan",             f:"🇯🇵", fixed:130,  float:510,  lat:36.5,  lng:138.0},
+  {c:"India",             f:"🇮🇳", fixed:200,  float:600,  lat:20.0,  lng:80.0},
+  {c:"Brazil",            f:"🇧🇷", fixed:450,  float:1800, lat:-12.0, lng:-48.0},
+  {c:"South Africa",      f:"🇿🇦", fixed:100,  float:700,  lat:-30.0, lng:26.0},
+  {c:"Indonesia",         f:"🇮🇩", fixed:150,  float:1200, lat:-5.0,  lng:120.0},
+  {c:"Vietnam",           f:"🇻🇳", fixed:160,  float:340,  lat:16.0,  lng:108.0},
+  {c:"Philippines",       f:"🇵🇭", fixed:80,   float:450,  lat:12.0,  lng:122.0},
+  {c:"Germany",           f:"🇩🇪", fixed:90,   float:40,   lat:54.0,  lng:10.0},
+  {c:"Netherlands",       f:"🇳🇱", fixed:70,   float:10,   lat:52.5,  lng:4.5},
+  {c:"Morocco",           f:"🇲🇦", fixed:60,   float:500,  lat:32.0,  lng:-6.0},
+  {c:"Chile",             f:"🇨🇱", fixed:90,   float:2200, lat:-30.0, lng:-71.0},
+  {c:"South Korea",       f:"🇰🇷", fixed:120,  float:290,  lat:36.0,  lng:128.0},
+  {c:"Taiwan",            f:"🇹🇼", fixed:55,   float:120,  lat:24.0,  lng:121.0},
+  {c:"France",            f:"🇫🇷", fixed:60,   float:280,  lat:47.0,  lng:2.0},
+  {c:"Canada",            f:"🇨🇦", fixed:400,  float:2100, lat:60.0,  lng:-95.0},
+];
+
+document.addEventListener('DOMContentLoaded', function() {
+  var svg      = document.getElementById('resource-map');
+  var bubblesG = document.getElementById('resource-map-bubbles');
+  var tooltip  = document.getElementById('resource-tooltip');
+  var rtBg     = document.getElementById('rt-bg');
+  var rtCountry= document.getElementById('rt-country');
+  var rtFixed  = document.getElementById('rt-fixed');
+  var rtFloat  = document.getElementById('rt-float');
+  var rtTotal  = document.getElementById('rt-total');
+  if (!svg || !bubblesG) return;
+
+  var maxTotal = Math.max.apply(null, RESOURCE_DATA.map(function(d){ return d.fixed + d.float; }));
+
+  RESOURCE_DATA.forEach(function(d) {
+    var total = d.fixed + d.float;
+    var x = lonToX(d.lng, 900);
+    var y = latToY(d.lat, 400);
+    var r = Math.max(6, Math.sqrt(total / maxTotal) * 38);
+    // Colour by fixed vs floating dominance
+    var fixRatio = d.fixed / total;
+    var col = fixRatio > 0.6 ? '#2CCEC9' : fixRatio < 0.3 ? '#C3FF6E' : '#004772';
+
+    var circle = document.createElementNS('http://www.w3.org/2000/svg','circle');
+    circle.setAttribute('cx', x); circle.setAttribute('cy', y);
+    circle.setAttribute('r', r);
+    circle.setAttribute('fill', col);
+    circle.setAttribute('opacity', '0.72');
+    circle.setAttribute('stroke', 'rgba(255,255,255,0.2)');
+    circle.setAttribute('stroke-width', '0.5');
+    circle.style.cursor = 'pointer';
+
+    if (r > 12) {
+      var txt = document.createElementNS('http://www.w3.org/2000/svg','text');
+      txt.setAttribute('x', x); txt.setAttribute('y', y + 4);
+      txt.setAttribute('text-anchor', 'middle');
+      txt.setAttribute('font-size', '11');
+      txt.setAttribute('pointer-events', 'none');
+      txt.textContent = d.f;
+      bubblesG.appendChild(txt);
+    }
+
+    circle.addEventListener('mouseenter', function(e) {
+      circle.setAttribute('opacity','1');
+      circle.setAttribute('r', r + 2);
+      var rect = svg.getBoundingClientRect();
+      var mx = (e.clientX - rect.left) * (900 / rect.width);
+      var my = (e.clientY - rect.top)  * (400 / rect.height);
+      var tx = mx > 675 ? mx - 212 : mx + 14;
+      var ty = my > 300 ? my - 90  : my - 10;
+      rtBg.setAttribute('x', tx);       rtBg.setAttribute('y', ty);
+      rtCountry.setAttribute('x', tx+10); rtCountry.setAttribute('y', ty+18);
+      rtFixed.setAttribute('x',   tx+10); rtFixed.setAttribute('y',   ty+34);
+      rtFloat.setAttribute('x',   tx+10); rtFloat.setAttribute('y',   ty+50);
+      rtTotal.setAttribute('x',   tx+10); rtTotal.setAttribute('y',   ty+66);
+      rtCountry.textContent = d.f + ' ' + d.c;
+      rtFixed.textContent   = 'Fixed-bottom: ' + d.fixed.toLocaleString() + ' GW';
+      rtFloat.textContent   = 'Floating:     ' + d.float.toLocaleString() + ' GW';
+      rtTotal.textContent   = 'Total: ' + total.toLocaleString() + ' GW  (' + Math.round(fixRatio*100) + '% fixed)';
+      tooltip.setAttribute('display','block');
+      svg.appendChild(tooltip);
+    });
+    circle.addEventListener('mouseleave', function() {
+      circle.setAttribute('opacity','0.72');
+      circle.setAttribute('r', r);
+      tooltip.setAttribute('display','none');
+    });
+
+    bubblesG.appendChild(circle);
+  });
+});
+
+const OSW_TARGETS = [
+  {c:"United Kingdom",  f:"🇬🇧", gw:50,   yr:"2030", col:"#06B6D4", lat:54.0,  lng:-2.0,  st:"policy",     ndc:true},
+  {c:"Germany",         f:"🇩🇪", gw:30,   yr:"2030", col:"#06B6D4", lat:51.2,  lng:10.4,  st:"binding",    ndc:false},
+  {c:"Netherlands",     f:"🇳🇱", gw:21,   yr:"2030", col:"#06B6D4", lat:52.3,  lng:5.3,   st:"binding",    ndc:false},
+  {c:"Belgium",         f:"🇧🇪", gw:5.8,  yr:"2030", col:"#06B6D4", lat:50.5,  lng:4.4,   st:"binding",    ndc:false},
+  {c:"Denmark",         f:"🇩🇰", gw:13.2, yr:"2030", col:"#06B6D4", lat:56.0,  lng:10.0,  st:"policy",     ndc:false},
+  {c:"France",          f:"🇫🇷", gw:18,   yr:"2035", col:"#06B6D4", lat:46.2,  lng:2.2,   st:"binding",    ndc:false},
+  {c:"Ireland",         f:"🇮🇪", gw:5,    yr:"2030", col:"#06B6D4", lat:53.4,  lng:-8.2,  st:"policy",     ndc:false},
+  {c:"Norway",          f:"🇳🇴", gw:3,    yr:"2030", col:"#06B6D4", lat:60.5,  lng:8.5,   st:"policy",     ndc:false},
+  {c:"Poland",          f:"🇵🇱", gw:6,    yr:"2030", col:"#06B6D4", lat:51.9,  lng:19.1,  st:"binding",    ndc:false},
+  {c:"Italy",           f:"🇮🇹", gw:2.1,  yr:"2030", col:"#06B6D4", lat:41.9,  lng:12.5,  st:"policy",     ndc:false},
+  {c:"Greece",          f:"🇬🇷", gw:2,    yr:"2030", col:"#06B6D4", lat:39.1,  lng:21.8,  st:"policy",     ndc:false},
+  {c:"Spain",           f:"🇪🇸", gw:3,    yr:"2030", col:"#06B6D4", lat:40.4,  lng:-3.7,  st:"policy",     ndc:false},
+  {c:"Portugal",        f:"🇵🇹", gw:10,   yr:"2030", col:"#06B6D4", lat:39.4,  lng:-8.2,  st:"policy",     ndc:false},
+  {c:"Türkiye",         f:"🇹🇷", gw:5,    yr:"2035", col:"#06B6D4", lat:39.0,  lng:32.9,  st:"policy",     ndc:true},
+  {c:"Azerbaijan",      f:"🇦🇿", gw:1.5,  yr:"TBD",  col:"#06B6D4", lat:40.1,  lng:47.6,  st:"qualitative",ndc:true},
+  {c:"Japan",           f:"🇯🇵", gw:10,   yr:"2030", col:"#F59E0B", lat:36.2,  lng:138.3, st:"binding",    ndc:true},
+  {c:"South Korea",     f:"🇰🇷", gw:30,   yr:"2030", col:"#F59E0B", lat:35.9,  lng:127.8, st:"policy",     ndc:false},
+  {c:"Taiwan",          f:"🇹🇼", gw:15.7, yr:"2030", col:"#F59E0B", lat:23.7,  lng:120.9, st:"binding",    ndc:false},
+  {c:"Vietnam",         f:"🇻🇳", gw:6,    yr:"2030", col:"#F59E0B", lat:14.1,  lng:108.3, st:"qualitative",ndc:true},
+  {c:"Philippines",     f:"🇵🇭", gw:4,    yr:"2030", col:"#F59E0B", lat:12.9,  lng:121.8, st:"policy",     ndc:false},
+  {c:"India",           f:"🇮🇳", gw:30,   yr:"2030", col:"#F59E0B", lat:20.6,  lng:79.1,  st:"policy",     ndc:false},
+  {c:"Australia",       f:"🇦🇺", gw:7,    yr:"2040", col:"#F59E0B", lat:-25.3, lng:133.8, st:"policy",     ndc:false},
+  {c:"United States",   f:"🇺🇸", gw:30,   yr:"2030", col:"#8B5CF6", lat:38.0,  lng:-97.0, st:"policy",     ndc:false},
+  {c:"Colombia",        f:"🇨🇴", gw:0.1,  yr:"2030", col:"#8B5CF6", lat:4.6,   lng:-74.1, st:"policy",     ndc:false},
+  {c:"Brazil",          f:"🇧🇷", gw:0,    yr:"—",    col:"#8B5CF6", lat:-14.2, lng:-51.9, st:"qualitative",ndc:true},
+  {c:"Barbados",        f:"🇧🇧", gw:0.15, yr:"2035", col:"#8B5CF6", lat:13.2,  lng:-59.6, st:"qualitative",ndc:true},
+  {c:"Morocco",         f:"🇲🇦", gw:1,    yr:"2029", col:"#F43F5E", lat:31.8,  lng:-7.1,  st:"policy",     ndc:false},
+];
+
+function lonToX(lng, w) { w = w||900; return (lng + 180) / 360 * w; }
+function latToY(lat, h) {
+  h = h||440;
+  var rad = lat * Math.PI / 180;
+  var mercN = Math.log(Math.tan(Math.PI/4 + rad/2));
+  return h/2 - (mercN / (2*Math.PI)) * h * 0.85 + 20;
+}
+
+function buildBubbles(svgId, bubblesId, tooltipIds, tbodyId, mapW, mapH) {
+  var svg      = document.getElementById(svgId);
+  var bubblesG = document.getElementById(bubblesId);
+  if (!svg || !bubblesG) return;
+
+  var tooltip   = tooltipIds.wrap   ? document.getElementById(tooltipIds.wrap)    : null;
+  var ttBg      = tooltipIds.bg     ? document.getElementById(tooltipIds.bg)      : null;
+  var ttCountry = tooltipIds.country? document.getElementById(tooltipIds.country) : null;
+  var ttTarget  = tooltipIds.target ? document.getElementById(tooltipIds.target)  : null;
+  var ttYear    = tooltipIds.year   ? document.getElementById(tooltipIds.year)    : null;
+  var ttStatus  = tooltipIds.status ? document.getElementById(tooltipIds.status)  : null;
+  var tbody     = tbodyId           ? document.getElementById(tbodyId)            : null;
+
+  bubblesG.innerHTML = '';  // clear on re-render
+  if (tbody) tbody.innerHTML = '';
+
+  var maxGW   = Math.max.apply(null, OSW_TARGETS.map(function(d){ return d.gw || 0.1; }));
+  var stLabel = {binding:'Legally binding', policy:'Government policy', qualitative:'Qualitative / roadmap'};
+  var stColor = {binding:'#C3FF6E', policy:'#2CCEC9', qualitative:'#7A8DB8'};
+  var NDC_COL = '#C3FF6E';
+
+  OSW_TARGETS.forEach(function(d) {
+    var gw = d.gw || 0.1;
+    var x  = lonToX(d.lng, mapW);
+    var y  = latToY(d.lat, mapH);
+    var r  = Math.max(5, Math.sqrt(gw / maxGW) * 24);
+
+    if (d.ndc) {
+      var ring = document.createElementNS('http://www.w3.org/2000/svg','circle');
+      ring.setAttribute('cx', x); ring.setAttribute('cy', y);
+      ring.setAttribute('r', r + 5);
+      ring.setAttribute('fill', 'none');
+      ring.setAttribute('stroke', NDC_COL);
+      ring.setAttribute('stroke-width', '1.5');
+      ring.setAttribute('opacity', '0.65');
+      bubblesG.appendChild(ring);
+    }
+
+    var circle = document.createElementNS('http://www.w3.org/2000/svg','circle');
+    circle.setAttribute('cx', x); circle.setAttribute('cy', y);
+    circle.setAttribute('r', r);
+    circle.setAttribute('fill', d.col);
+    circle.setAttribute('opacity', '0.82');
+    circle.setAttribute('stroke', 'rgba(255,255,255,0.2)');
+    circle.setAttribute('stroke-width', '0.5');
+    circle.style.cursor = 'pointer';
+
+    if (r > 10) {
+      var txt = document.createElementNS('http://www.w3.org/2000/svg','text');
+      txt.setAttribute('x', x); txt.setAttribute('y', y + 4);
+      txt.setAttribute('text-anchor', 'middle');
+      txt.setAttribute('font-size', '11');
+      txt.setAttribute('pointer-events', 'none');
+      txt.textContent = d.f;
+      bubblesG.appendChild(txt);
+    }
+
+    if (tooltip && ttBg && ttCountry && ttTarget && ttYear && ttStatus) {
+      circle.addEventListener('mouseenter', function(e) {
+        circle.setAttribute('opacity','1');
+        circle.setAttribute('r', r + 2);
+        var rect = svg.getBoundingClientRect();
+        var sx = mapW / rect.width;
+        var sy = mapH / rect.height;
+        var mx = (e.clientX - rect.left) * sx;
+        var my = (e.clientY - rect.top)  * sy;
+        var tx = mx > mapW * 0.75 ? mx - 178 : mx + 14;
+        var ty = my > mapH * 0.8  ? my - 85  : my - 10;
+        ttBg.setAttribute('x', tx);      ttBg.setAttribute('y', ty);
+        ttCountry.setAttribute('x', tx+10); ttCountry.setAttribute('y', ty+18);
+        ttTarget.setAttribute('x',  tx+10); ttTarget.setAttribute('y',  ty+34);
+        ttYear.setAttribute('x',    tx+10); ttYear.setAttribute('y',    ty+50);
+        ttStatus.setAttribute('x',  tx+10); ttStatus.setAttribute('y',  ty+65);
+        ttCountry.textContent = d.f + ' ' + d.c;
+        ttTarget.textContent  = 'Target: ' + (d.gw > 0 ? d.gw + ' GW' : 'Roadmap only');
+        ttYear.textContent    = 'Year: ' + d.yr + (d.ndc ? '  · NDC ✓' : '');
+        ttStatus.textContent  = stLabel[d.st] || d.st;
+        tooltip.setAttribute('display','block');
+        svg.appendChild(tooltip);
+      });
+      circle.addEventListener('mouseleave', function() {
+        circle.setAttribute('opacity','0.82');
+        circle.setAttribute('r', r);
+        tooltip.setAttribute('display','none');
+      });
+    }
+
+    bubblesG.appendChild(circle);
+
+    if (tbody) {
+      var tr = document.createElement('tr');
+      var monoSt  = 'font-family:monospace';
+      var spanSt  = 'font-size:9px;padding:2px 5px;border-radius:3px;background:rgba(0,0,0,0.25);color:' + (stColor[d.st]||'#aaa');
+      var ndcCell = d.ndc ? '<span style="color:#C3FF6E;font-weight:bold">&#10003;</span>' : '';
+      var gwCell  = d.gw > 0 ? d.gw + ' GW' : '&mdash;';
+      tr.innerHTML = '<td>' + d.f + ' ' + d.c + '</td>' +
+        '<td style="' + monoSt + '">' + gwCell + '</td>' +
+        '<td>' + d.yr + '</td>' +
+        '<td><span style="' + spanSt + '">' + (stLabel[d.st]||d.st) + '</span></td>' +
+        '<td style="text-align:center">' + ndcCell + '</td>';
+      tbody.appendChild(tr);
+    }
+  });
+}
+
+function buildMap() {
+  buildBubbles('osw-map', 'map-bubbles',
+    {wrap:'map-tooltip', bg:'tt-bg', country:'tt-country', target:'tt-target', year:'tt-year', status:'tt-status'},
+    'targets-table-body', 900, 440);
+}
+
+function buildOverviewMap() {
+  buildBubbles('osw-map-overview', 'map-bubbles-overview',
+    {wrap:'map-tooltip-overview', bg:'tt-bg-ov', country:'tt-country-ov', target:'tt-target-ov', year:'tt-year-ov', status:'tt-status-ov'},
+    null, 900, 380);
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  buildOverviewMap();
+  buildMap();
+});
+
+// ── MAP DOTS (decorative) ───────────────────────────────────
+const dotsData = [
+  {l:'55%',t:'28%',s:18},{l:'48%',t:'22%',s:14},{l:'52%',t:'24%',s:12},
+  {l:'60%',t:'32%',s:10},{l:'35%',t:'45%',s:8},{l:'72%',t:'38%',s:10},
+  {l:'78%',t:'42%',s:8},{l:'20%',t:'55%',s:6},{l:'82%',t:'55%',s:8},
+  {l:'65%',t:'60%',s:6},{l:'45%',t:'15%',s:6}
+];
+const mapDots = document.getElementById('mapDots');
+if (mapDots) {
+  dotsData.forEach((d, i) => {
+    const dot = document.createElement('div');
+    dot.className = 'map-dot';
+    dot.style.cssText = `left:${d.l};top:${d.t};width:${d.s}px;height:${d.s}px;animation-delay:${i*0.3}s`;
+    mapDots.appendChild(dot);
+  });
+}
+</script>
+</body>
+</html>
